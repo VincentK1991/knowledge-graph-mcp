@@ -1,0 +1,330 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "knowledge-graph-mcp"
+version = "0.1.0"
+description = "MCP server for Knowledge Graph operations with Neo4j backend"
+authors = [
+    {name = "Virapat Kieuvongngam", email = "vkieuvongngam@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["mcp", "neo4j", "knowledge-graph", "graph-database", "ai", "assistant"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Database",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    # MCP Framework
+    "mcp>=1.0.0",
+
+    # Neo4j Driver and Graph Database
+    "neo4j>=5.15.0",
+
+    # Async Support
+    "asyncio-mqtt>=0.16.0",
+
+    # Data Validation and Serialization
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+
+    # Configuration Management
+    "python-dotenv>=1.0.0",
+
+    # JSON Schema Validation
+    "jsonschema>=4.20.0",
+
+    # Date/Time Handling
+    "python-dateutil>=2.8.2",
+
+    # Logging and Monitoring
+    "structlog>=23.2.0",
+
+    # Type Hints and Utilities
+    "typing-extensions>=4.8.0",
+
+    # HTTP Client (for health checks, etc.)
+    "httpx>=0.25.0",
+
+    # Retry Logic
+    "tenacity>=8.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+
+    # Code Quality
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "pyright>=1.1.340",
+
+    # Documentation
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.4.0",
+    "mkdocstrings[python]>=0.24.0",
+
+    # Development Tools
+    "pre-commit>=3.5.0",
+    "ipython>=8.17.0",
+    "jupyter>=1.0.0",
+]
+
+testing = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "testcontainers[neo4j]>=3.7.0",  # For integration testing with real Neo4j
+    "factory-boy>=3.3.0",  # For test data generation
+]
+
+performance = [
+    # Performance monitoring and profiling
+    "py-spy>=0.3.14",
+    "memory-profiler>=0.61.0",
+    "line-profiler>=4.1.0",
+
+    # Async performance optimizations
+    "uvloop>=0.19.0; sys_platform != 'win32'",  # Unix only
+]
+
+security = [
+    # Security scanning and validation
+    "bandit>=1.7.5",
+    "safety>=2.3.0",
+    "semgrep>=1.45.0",
+]
+
+all = [
+    "knowledge-graph-mcp[dev,testing,performance,security]"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/vkieuvongngam/graphql-learning"
+"Repository" = "https://github.com/vkieuvongngam/graphql-learning"
+"Documentation" = "https://github.com/vkieuvongngam/graphql-learning/tree/main/mcp_servers/knowledge-graph-mcp"
+"Bug Reports" = "https://github.com/vkieuvongngam/graphql-learning/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[project.scripts]
+knowledge-graph-mcp = "knowledge_graph_mcp.server:main"
+
+# UV-specific configuration
+[tool.uv]
+dev-dependencies = [
+    # Core development dependencies
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+
+    # Code formatting and linting
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "pyright>=1.1.340",
+
+    # Neo4j testing
+    "testcontainers[neo4j]>=3.7.0",
+
+    # Development tools
+    "ipython>=8.17.0",
+    "pre-commit>=3.5.0",
+]
+
+# Black code formatter configuration
+[tool.black]
+line-length = 88
+target-version = ['py310', 'py311', 'py312']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+# isort import sorter configuration
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["knowledge_graph_mcp"]
+known_third_party = ["neo4j", "mcp", "pydantic", "pytest"]
+
+# Pyright type checker configuration
+[tool.pyright]
+include = ["src"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.venv",
+    "**/venv",
+    "**/build",
+    "**/dist",
+    "**/*.egg-info",
+]
+reportMissingImports = true
+reportMissingTypeStubs = false
+reportUnusedImport = true
+reportUnusedClass = true
+reportUnusedFunction = true
+reportUnusedVariable = true
+reportDuplicateImport = true
+reportOptionalSubscript = true
+reportOptionalMemberAccess = true
+reportOptionalCall = true
+reportOptionalIterable = true
+reportOptionalContextManager = true
+reportOptionalOperand = true
+reportTypedDictNotRequiredAccess = false
+reportPrivateUsage = true
+reportConstantRedefinition = true
+reportIncompatibleMethodOverride = true
+reportIncompatibleVariableOverride = true
+reportOverlappingOverloads = true
+pythonVersion = "3.10"
+pythonPlatform = "Linux"
+executionEnvironments = [
+    { root = "src" }
+]
+
+# Pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=knowledge_graph_mcp",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=80",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "neo4j: marks tests that require Neo4j database",
+]
+asyncio_mode = "auto"
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src/knowledge_graph_mcp"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+# Bandit security linter configuration
+[tool.bandit]
+exclude_dirs = ["tests", "venv", ".venv"]
+skips = ["B101", "B601"]  # Skip assert_used and shell_injection_process for tests
+
+# Flake8 linter configuration (in setup.cfg format since flake8 doesn't support pyproject.toml yet)
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503", "E501"]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "*.egg-info",
+]
+
+# Pre-commit hooks configuration
+[[tool.pre-commit.repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v4.4.0"
+hooks = [
+    {id = "trailing-whitespace"},
+    {id = "end-of-file-fixer"},
+    {id = "check-yaml"},
+    {id = "check-added-large-files"},
+    {id = "check-json"},
+    {id = "check-toml"},
+]
+
+[[tool.pre-commit.repos]]
+repo = "https://github.com/psf/black"
+rev = "23.9.1"
+hooks = [
+    {id = "black"}
+]
+
+[[tool.pre-commit.repos]]
+repo = "https://github.com/pycqa/isort"
+rev = "5.12.0"
+hooks = [
+    {id = "isort"}
+]
+
+[[tool.pre-commit.repos]]
+repo = "https://github.com/pycqa/flake8"
+rev = "6.1.0"
+hooks = [
+    {id = "flake8"}
+]
+
+[[tool.pre-commit.repos]]
+repo = "https://github.com/RobertCraigie/pyright-python"
+rev = "v1.1.340"
+hooks = [
+    {id = "pyright"}
+]
