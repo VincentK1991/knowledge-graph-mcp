@@ -17,111 +17,256 @@ def register_analytics_tools(mcp: FastMCP):
     """Register all analytics and normalization tools with the MCP server."""
 
     @mcp.tool()
-    async def normalize_entities(
-        entity_type: str,
+    async def find_similar_nodes(
+        entity_type: Optional[str] = None,
         similarity_threshold: float = 0.8,
-        merge_strategy: str = "keep_latest",
-        dry_run: bool = True,
+        comparison_property: str = "name",
+        limit: int = 50,
         database: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Normalize entities by finding and merging duplicates or similar entities.
+        Find similar nodes based on property similarity.
 
         Args:
-            entity_type: The type of entities to normalize (e.g., "Service", "Class")
+            entity_type: Optional entity type to filter by (e.g., "Service", "Class")
             similarity_threshold: Similarity threshold for matching (0.0-1.0)
-            merge_strategy: Strategy for merging - "keep_latest", "keep_oldest", "merge_properties"
-            dry_run: If True, only reports what would be normalized without making changes
+            comparison_property: Property to compare for similarity (default: "name")
+            limit: Maximum number of similar pairs to return
             database: Optional database name
 
         Returns:
-            Normalization results including duplicates found and actions taken
+            List of similar node pairs with similarity scores
         """
         try:
             logger.info(
-                f"Normalizing {entity_type} entities via MCP (dry_run: {dry_run})"
+                f"Finding similar nodes via MCP (threshold: {similarity_threshold})"
             )
 
-            # Find potential duplicates based on name similarity
-            duplicate_query = f"""
-            MATCH (n1:{entity_type}), (n2:{entity_type})
+            # Build query based on whether entity_type is specified
+            if entity_type:
+                match_clause = f"MATCH (n1:{entity_type}), (n2:{entity_type})"
+            else:
+                match_clause = "MATCH (n1), (n2)"
+
+            # Find potential similar nodes based on property similarity
+            similar_query = f"""
+            {match_clause}
             WHERE elementId(n1) < elementId(n2)
+              AND n1.{comparison_property} IS NOT NULL
+              AND n2.{comparison_property} IS NOT NULL
               AND (
-                n1.name = n2.name
-                OR (n1.name IS NOT NULL AND n2.name IS NOT NULL AND
-                    toLower(n1.name) = toLower(n2.name))
+                n1.{comparison_property} = n2.{comparison_property}
+                OR toLower(toString(n1.{comparison_property})) = toLower(toString(n2.{comparison_property}))
+                OR (
+                  size(toString(n1.{comparison_property})) > 3
+                  AND size(toString(n2.{comparison_property})) > 3
+                  AND toLower(toString(n1.{comparison_property})) CONTAINS toLower(toString(n2.{comparison_property}))
+                )
+                OR (
+                  size(toString(n2.{comparison_property})) > 3
+                  AND size(toString(n1.{comparison_property})) > 3
+                  AND toLower(toString(n2.{comparison_property})) CONTAINS toLower(toString(n1.{comparison_property}))
+                )
               )
-            RETURN elementId(n1) as node1_id, n1.name as name1, properties(n1) as props1,
-                   elementId(n2) as node2_id, n2.name as name2, properties(n2) as props2,
-                   CASE
-                     WHEN n1.name = n2.name THEN 1.0
-                     WHEN toLower(n1.name) = toLower(n2.name) THEN 0.9
-                     ELSE 0.0
-                   END as similarity_score
+            RETURN
+              elementId(n1) as node1_id,
+              labels(n1) as node1_labels,
+              n1.{comparison_property} as node1_value,
+              properties(n1) as node1_props,
+              elementId(n2) as node2_id,
+              labels(n2) as node2_labels,
+              n2.{comparison_property} as node2_value,
+              properties(n2) as node2_props,
+              CASE
+                WHEN n1.{comparison_property} = n2.{comparison_property} THEN 1.0
+                WHEN toLower(toString(n1.{comparison_property})) = toLower(toString(n2.{comparison_property})) THEN 0.95
+                WHEN toLower(toString(n1.{comparison_property})) CONTAINS toLower(toString(n2.{comparison_property})) THEN 0.8
+                WHEN toLower(toString(n2.{comparison_property})) CONTAINS toLower(toString(n1.{comparison_property})) THEN 0.8
+                ELSE 0.0
+              END as similarity_score
             ORDER BY similarity_score DESC
+            LIMIT $limit
             """
 
-            params = {"threshold": similarity_threshold}
-            duplicates = await execute_cypher(duplicate_query, params, database)
+            params = {"threshold": similarity_threshold, "limit": limit}
+            similar_nodes = await execute_cypher(similar_query, params, database)
 
-            if dry_run:
-                return {
-                    "success": True,
-                    "dry_run": True,
-                    "entity_type": entity_type,
-                    "duplicates_found": duplicates,
-                    "duplicate_count": len(duplicates),
-                    "similarity_threshold": similarity_threshold,
-                    "message": f"Found {len(duplicates)} potential duplicate pairs (dry run)",
-                }
-
-            # Perform actual normalization
-            normalized_pairs = []
-            for dup in duplicates:
-                try:
-                    node1_id = dup["node1_id"]
-                    node2_id = dup["node2_id"]
-
-                    # Simple strategy: keep first node, merge second
-                    keep_node_id, merge_node_id = node1_id, node2_id
-
-                    # Delete relationships to merge_node and recreate to keep_node
-                    # This is a simplified approach
-                    delete_query = (
-                        "MATCH (n) WHERE elementId(n) = $node_id DETACH DELETE n"
-                    )
-                    await execute_cypher(
-                        delete_query, {"node_id": merge_node_id}, database
-                    )
-
-                    normalized_pairs.append(
-                        {
-                            "kept_node_id": keep_node_id,
-                            "merged_node_id": merge_node_id,
-                            "similarity_score": dup["similarity_score"],
-                            "strategy": merge_strategy,
-                        }
-                    )
-
-                except Exception as e:
-                    logger.error(
-                        f"Error normalizing pair {dup['node1_id']}, {dup['node2_id']}: {e}"
-                    )
-                    continue
+            # Filter by threshold
+            filtered_results = [
+                node
+                for node in similar_nodes
+                if node["similarity_score"] >= similarity_threshold
+            ]
 
             return {
                 "success": True,
-                "dry_run": False,
                 "entity_type": entity_type,
-                "duplicates_found": len(duplicates),
-                "normalized_pairs": normalized_pairs,
-                "normalized_count": len(normalized_pairs),
-                "merge_strategy": merge_strategy,
-                "message": f"Normalized {len(normalized_pairs)} duplicate pairs",
+                "comparison_property": comparison_property,
+                "similarity_threshold": similarity_threshold,
+                "similar_pairs": filtered_results,
+                "pairs_found": len(filtered_results),
+                "total_candidates": len(similar_nodes),
+                "message": f"Found {len(filtered_results)} similar node pairs",
             }
 
         except Exception as e:
-            logger.error(f"Error normalizing entities: {str(e)}")
+            logger.error(f"Error finding similar nodes: {str(e)}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
+    async def find_isolated_nodes(
+        entity_type: Optional[str] = None,
+        max_path_length: int = 3,
+        include_completely_isolated: bool = True,
+        limit: int = 100,
+        database: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Find isolated nodes that have no connections or very limited connectivity.
+
+        Args:
+            entity_type: Optional entity type to filter by (e.g., "Service", "Class")
+            max_path_length: Maximum path length to consider a node isolated (default: 3)
+            include_completely_isolated: Include nodes with zero connections (default: True)
+            limit: Maximum number of isolated nodes to return
+            database: Optional database name
+
+        Returns:
+            List of isolated nodes with their connectivity information
+        """
+        try:
+            logger.info(
+                f"Finding isolated nodes via MCP (max_path_length: {max_path_length})"
+            )
+
+            isolated_nodes = []
+
+            if include_completely_isolated:
+                # Find completely isolated nodes (no relationships at all)
+                if entity_type:
+                    isolated_query = f"""
+                    MATCH (n:{entity_type})
+                    WHERE NOT (n)--()
+                    RETURN
+                      elementId(n) as node_id,
+                      labels(n) as node_labels,
+                      properties(n) as node_properties,
+                      0 as connection_count,
+                      0 as max_reachable_distance,
+                      'completely_isolated' as isolation_type
+                    LIMIT $limit
+                    """
+                else:
+                    isolated_query = """
+                    MATCH (n)
+                    WHERE NOT (n)--()
+                    RETURN
+                      elementId(n) as node_id,
+                      labels(n) as node_labels,
+                      properties(n) as node_properties,
+                      0 as connection_count,
+                      0 as max_reachable_distance,
+                      'completely_isolated' as isolation_type
+                    LIMIT $limit
+                    """
+
+                completely_isolated = await execute_cypher(
+                    isolated_query, {"limit": limit}, database
+                )
+                isolated_nodes.extend(completely_isolated)
+
+            # Find nodes with limited connectivity (can't reach far in the graph)
+            remaining_limit = limit - len(isolated_nodes)
+            if remaining_limit > 0 and max_path_length > 0:
+                if entity_type:
+                    limited_connectivity_query = f"""
+                    MATCH (n:{entity_type})
+                    WHERE (n)--() // Has at least one connection
+                    WITH n
+                    CALL {{
+                      WITH n
+                      MATCH path = (n)-[*1..{max_path_length}]->(target)
+                      RETURN count(DISTINCT target) as reachable_nodes,
+                             max(length(path)) as max_distance
+                    }}
+                    WITH n, reachable_nodes, max_distance
+                    WHERE reachable_nodes <= {max_path_length * 2} // Arbitrary threshold for "limited"
+                    RETURN
+                      elementId(n) as node_id,
+                      labels(n) as node_labels,
+                      properties(n) as node_properties,
+                      size((n)--()) as connection_count,
+                      max_distance as max_reachable_distance,
+                      'limited_connectivity' as isolation_type
+                    ORDER BY connection_count ASC, reachable_nodes ASC
+                    LIMIT $remaining_limit
+                    """
+                else:
+                    limited_connectivity_query = f"""
+                    MATCH (n)
+                    WHERE (n)--() // Has at least one connection
+                    WITH n
+                    CALL {{
+                      WITH n
+                      MATCH path = (n)-[*1..{max_path_length}]->(target)
+                      RETURN count(DISTINCT target) as reachable_nodes,
+                             max(length(path)) as max_distance
+                    }}
+                    WITH n, reachable_nodes, max_distance
+                    WHERE reachable_nodes <= {max_path_length * 2} // Arbitrary threshold for "limited"
+                    RETURN
+                      elementId(n) as node_id,
+                      labels(n) as node_labels,
+                      properties(n) as node_properties,
+                      size((n)--()) as connection_count,
+                      max_distance as max_reachable_distance,
+                      'limited_connectivity' as isolation_type
+                    ORDER BY connection_count ASC, reachable_nodes ASC
+                    LIMIT $remaining_limit
+                    """
+
+                limited_connectivity = await execute_cypher(
+                    limited_connectivity_query,
+                    {"remaining_limit": remaining_limit},
+                    database,
+                )
+                isolated_nodes.extend(limited_connectivity)
+
+            # Categorize results
+            completely_isolated_count = len(
+                [
+                    n
+                    for n in isolated_nodes
+                    if n["isolation_type"] == "completely_isolated"
+                ]
+            )
+            limited_connectivity_count = len(
+                [
+                    n
+                    for n in isolated_nodes
+                    if n["isolation_type"] == "limited_connectivity"
+                ]
+            )
+
+            return {
+                "success": True,
+                "entity_type": entity_type,
+                "max_path_length": max_path_length,
+                "include_completely_isolated": include_completely_isolated,
+                "isolated_nodes": isolated_nodes,
+                "total_isolated": len(isolated_nodes),
+                "completely_isolated_count": completely_isolated_count,
+                "limited_connectivity_count": limited_connectivity_count,
+                "summary": {
+                    "completely_isolated": completely_isolated_count,
+                    "limited_connectivity": limited_connectivity_count,
+                    "total": len(isolated_nodes),
+                },
+                "message": f"Found {len(isolated_nodes)} isolated nodes ({completely_isolated_count} completely isolated, {limited_connectivity_count} with limited connectivity)",
+            }
+
+        except Exception as e:
+            logger.error(f"Error finding isolated nodes: {str(e)}")
             return {"success": False, "error": str(e)}
 
     @mcp.tool()

@@ -1,0 +1,2154 @@
+# Knowledge Graph Schema: Software Engineering Domain
+# Version: 1.0.0
+# Description: Comprehensive schema for software architecture and infrastructure knowledge
+
+metadata:
+  version: "1.0.0"
+  name: "Software Engineering"
+  description: "Comprehensive knowledge graph schema for software architecture and infrastructure"
+  categories:
+    - "Service Layer"
+    - "Code Structure"
+    - "Web Layer"
+    - "Business Logic"
+    - "Database & Data"
+    - "Configuration"
+    - "Infrastructure"
+    - "Monitoring"
+
+# Entity Types Definition
+entity_types:
+  # Service Layer
+  Service:
+    description: "A software service or application component"
+    category: "Service Layer"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      version:
+        type: "string"
+        required: false
+      description:
+        type: "string"
+        required: false
+      status:
+        type: "string"
+        enum: ["active", "inactive", "deprecated"]
+      created_at:
+        type: "datetime"
+        required: true
+      updated_at:
+        type: "datetime"
+        required: true
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "status"
+
+  # Code Structure
+  Module:
+    description: "A code module or package"
+    category: "Code Structure"
+    properties:
+      name:
+        type: "string"
+        required: true
+      path:
+        type: "string"
+        required: true
+        unique: true
+      language:
+        type: "string"
+        required: true
+      lines_of_code:
+        type: "integer"
+        required: false
+      complexity_score:
+        type: "float"
+        required: false
+    constraints:
+      - "UNIQUE (path)"
+    indexes:
+      - "name"
+      - "language"
+      - "path"
+
+  Class:
+    description: "A class definition in code"
+    category: "Code Structure"
+    properties:
+      name:
+        type: "string"
+        required: true
+      full_name:
+        type: "string"
+        required: true
+        unique: true
+      visibility:
+        type: "string"
+        enum: ["public", "private", "protected"]
+      is_abstract:
+        type: "boolean"
+        default: false
+      is_interface:
+        type: "boolean"
+        default: false
+      line_number:
+        type: "integer"
+        required: false
+    constraints:
+      - "UNIQUE (full_name)"
+    indexes:
+      - "name"
+      - "full_name"
+      - "visibility"
+
+  Interface:
+    description: "An interface definition"
+    category: "Code Structure"
+    properties:
+      name:
+        type: "string"
+        required: true
+      full_name:
+        type: "string"
+        required: true
+        unique: true
+      visibility:
+        type: "string"
+        enum: ["public", "private", "protected"]
+      line_number:
+        type: "integer"
+        required: false
+    constraints:
+      - "UNIQUE (full_name)"
+    indexes:
+      - "name"
+      - "full_name"
+
+  Function:
+    description: "A function or procedure definition"
+    category: "Code Structure"
+    properties:
+      name:
+        type: "string"
+        required: true
+      full_name:
+        type: "string"
+        required: true
+        unique: true
+      parameters:
+        type: "array"
+        required: false
+      return_type:
+        type: "string"
+        required: false
+      visibility:
+        type: "string"
+        enum: ["public", "private", "protected"]
+      is_static:
+        type: "boolean"
+        default: false
+      line_number:
+        type: "integer"
+        required: false
+      complexity_score:
+        type: "float"
+        required: false
+    constraints:
+      - "UNIQUE (full_name)"
+    indexes:
+      - "name"
+      - "full_name"
+      - "visibility"
+
+  Method:
+    description: "A method within a class"
+    category: "Code Structure"
+    properties:
+      name:
+        type: "string"
+        required: true
+      full_name:
+        type: "string"
+        required: true
+        unique: true
+      parameters:
+        type: "array"
+        required: false
+      return_type:
+        type: "string"
+        required: false
+      visibility:
+        type: "string"
+        enum: ["public", "private", "protected"]
+      is_static:
+        type: "boolean"
+        default: false
+      is_abstract:
+        type: "boolean"
+        default: false
+      line_number:
+        type: "integer"
+        required: false
+    constraints:
+      - "UNIQUE (full_name)"
+    indexes:
+      - "name"
+      - "full_name"
+      - "visibility"
+
+  Variable:
+    description: "A variable or field definition"
+    category: "Code Structure"
+    properties:
+      name:
+        type: "string"
+        required: true
+      full_name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        required: false
+      visibility:
+        type: "string"
+        enum: ["public", "private", "protected"]
+      is_static:
+        type: "boolean"
+        default: false
+      is_constant:
+        type: "boolean"
+        default: false
+      default_value:
+        type: "string"
+        required: false
+    constraints:
+      - "UNIQUE (full_name)"
+    indexes:
+      - "name"
+      - "full_name"
+      - "type"
+
+  # Web Layer
+  Endpoint:
+    description: "An API endpoint or web service endpoint"
+    category: "Web Layer"
+    properties:
+      path:
+        type: "string"
+        required: true
+        unique: true
+      method:
+        type: "string"
+        enum: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+      description:
+        type: "string"
+        required: false
+      parameters:
+        type: "array"
+        required: false
+      response_type:
+        type: "string"
+        required: false
+      is_authenticated:
+        type: "boolean"
+        default: false
+      rate_limit:
+        type: "integer"
+        required: false
+    constraints:
+      - "UNIQUE (path, method)"
+    indexes:
+      - "path"
+      - "method"
+
+  Route:
+    description: "A routing definition"
+    category: "Web Layer"
+    properties:
+      pattern:
+        type: "string"
+        required: true
+      name:
+        type: "string"
+        required: false
+      middleware:
+        type: "array"
+        required: false
+      parameters:
+        type: "array"
+        required: false
+    indexes:
+      - "pattern"
+      - "name"
+
+  # Business Logic
+  BusinessRule:
+    description: "A business rule or constraint"
+    category: "Business Logic"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      description:
+        type: "string"
+        required: true
+      type:
+        type: "string"
+        enum: ["validation", "calculation", "workflow", "constraint"]
+      priority:
+        type: "integer"
+        default: 1
+      is_active:
+        type: "boolean"
+        default: true
+      conditions:
+        type: "string"
+        required: false
+      actions:
+        type: "string"
+        required: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+      - "priority"
+
+  BusinessProcess:
+    description: "A business process or workflow"
+    category: "Business Logic"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      description:
+        type: "string"
+        required: true
+      version:
+        type: "string"
+        required: false
+      status:
+        type: "string"
+        enum: ["draft", "active", "deprecated"]
+      steps:
+        type: "array"
+        required: false
+      triggers:
+        type: "array"
+        required: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "status"
+
+  BusinessCalculation:
+    description: "A business calculation or formula"
+    category: "Business Logic"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      formula:
+        type: "string"
+        required: true
+      description:
+        type: "string"
+        required: false
+      input_parameters:
+        type: "array"
+        required: false
+      output_type:
+        type: "string"
+        required: false
+      precision:
+        type: "integer"
+        required: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+
+  BusinessEvent:
+    description: "A business event or trigger"
+    category: "Business Logic"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      event_type:
+        type: "string"
+        required: true
+      description:
+        type: "string"
+        required: false
+      payload_schema:
+        type: "string"
+        required: false
+      frequency:
+        type: "string"
+        enum: ["once", "recurring", "on_demand"]
+      is_active:
+        type: "boolean"
+        default: true
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "event_type"
+      - "frequency"
+
+  BusinessEntity:
+    description: "A core business entity or domain object"
+    category: "Business Logic"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      description:
+        type: "string"
+        required: false
+      attributes:
+        type: "array"
+        required: false
+      lifecycle_states:
+        type: "array"
+        required: false
+      business_rules:
+        type: "array"
+        required: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+
+  BusinessDecision:
+    description: "A business decision point or logic"
+    category: "Business Logic"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      description:
+        type: "string"
+        required: false
+      decision_criteria:
+        type: "string"
+        required: true
+      outcomes:
+        type: "array"
+        required: false
+      decision_type:
+        type: "string"
+        enum: ["automated", "manual", "hybrid"]
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "decision_type"
+
+  # Database & Data
+  DatabaseCluster:
+    description: "A database cluster or group"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        enum: ["sql", "nosql", "graph", "timeseries"]
+      vendor:
+        type: "string"
+        required: false
+      version:
+        type: "string"
+        required: false
+      replication_type:
+        type: "string"
+        enum: ["master-slave", "master-master", "sharded"]
+      nodes_count:
+        type: "integer"
+        required: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+      - "vendor"
+
+  Database:
+    description: "A database instance"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        enum: ["sql", "nosql", "graph", "timeseries"]
+      vendor:
+        type: "string"
+        required: false
+      version:
+        type: "string"
+        required: false
+      size_mb:
+        type: "integer"
+        required: false
+      connection_string:
+        type: "string"
+        required: false
+        sensitive: true
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+      - "vendor"
+
+  Schema:
+    description: "A database schema"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+      description:
+        type: "string"
+        required: false
+      version:
+        type: "string"
+        required: false
+      created_at:
+        type: "datetime"
+        required: false
+      updated_at:
+        type: "datetime"
+        required: false
+    indexes:
+      - "name"
+
+  Table:
+    description: "A database table"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+      full_name:
+        type: "string"
+        required: true
+        unique: true
+      description:
+        type: "string"
+        required: false
+      row_count:
+        type: "integer"
+        required: false
+      size_mb:
+        type: "integer"
+        required: false
+      created_at:
+        type: "datetime"
+        required: false
+    constraints:
+      - "UNIQUE (full_name)"
+    indexes:
+      - "name"
+      - "full_name"
+
+  View:
+    description: "A database view"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+      full_name:
+        type: "string"
+        required: true
+        unique: true
+      definition:
+        type: "string"
+        required: false
+      is_materialized:
+        type: "boolean"
+        default: false
+      created_at:
+        type: "datetime"
+        required: false
+    constraints:
+      - "UNIQUE (full_name)"
+    indexes:
+      - "name"
+      - "full_name"
+
+  Index:
+    description: "A database index"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+      columns:
+        type: "array"
+        required: true
+      is_unique:
+        type: "boolean"
+        default: false
+      is_clustered:
+        type: "boolean"
+        default: false
+      type:
+        type: "string"
+        enum: ["btree", "hash", "bitmap", "fulltext"]
+    indexes:
+      - "name"
+
+  Trigger:
+    description: "A database trigger"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      event:
+        type: "string"
+        enum: ["INSERT", "UPDATE", "DELETE"]
+      timing:
+        type: "string"
+        enum: ["BEFORE", "AFTER", "INSTEAD_OF"]
+      definition:
+        type: "string"
+        required: false
+      is_active:
+        type: "boolean"
+        default: true
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "event"
+      - "timing"
+
+  StoredProcedure:
+    description: "A stored procedure"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      parameters:
+        type: "array"
+        required: false
+      return_type:
+        type: "string"
+        required: false
+      definition:
+        type: "string"
+        required: false
+      language:
+        type: "string"
+        required: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+
+  Collection:
+    description: "A NoSQL collection or document store"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      document_count:
+        type: "integer"
+        required: false
+      size_mb:
+        type: "integer"
+        required: false
+      indexes:
+        type: "array"
+        required: false
+      schema_validation:
+        type: "string"
+        required: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+
+  Document:
+    description: "A document in a NoSQL collection"
+    category: "Database & Data"
+    properties:
+      id:
+        type: "string"
+        required: true
+        unique: true
+      schema_version:
+        type: "string"
+        required: false
+      created_at:
+        type: "datetime"
+        required: false
+      updated_at:
+        type: "datetime"
+        required: false
+      size_bytes:
+        type: "integer"
+        required: false
+    constraints:
+      - "UNIQUE (id)"
+    indexes:
+      - "id"
+
+  Field:
+    description: "A field in a document or collection"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+      path:
+        type: "string"
+        required: true
+      data_type:
+        type: "string"
+        required: true
+      is_required:
+        type: "boolean"
+        default: false
+      is_indexed:
+        type: "boolean"
+        default: false
+      validation_rules:
+        type: "string"
+        required: false
+    indexes:
+      - "name"
+      - "path"
+      - "data_type"
+
+  Column:
+    description: "A column in a database table"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+      data_type:
+        type: "string"
+        required: true
+      is_nullable:
+        type: "boolean"
+        default: true
+      default_value:
+        type: "string"
+        required: false
+      max_length:
+        type: "integer"
+        required: false
+      precision:
+        type: "integer"
+        required: false
+      scale:
+        type: "integer"
+        required: false
+    indexes:
+      - "name"
+      - "data_type"
+
+  PrimaryKey:
+    description: "A primary key constraint"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      columns:
+        type: "array"
+        required: true
+      is_clustered:
+        type: "boolean"
+        default: true
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+
+  ForeignKey:
+    description: "A foreign key constraint"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      columns:
+        type: "array"
+        required: true
+      referenced_columns:
+        type: "array"
+        required: true
+      on_delete:
+        type: "string"
+        enum: ["CASCADE", "SET_NULL", "RESTRICT", "NO_ACTION"]
+      on_update:
+        type: "string"
+        enum: ["CASCADE", "SET_NULL", "RESTRICT", "NO_ACTION"]
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+
+  Constraint:
+    description: "A database constraint"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        enum: ["CHECK", "UNIQUE", "NOT_NULL", "DEFAULT"]
+      definition:
+        type: "string"
+        required: true
+      is_active:
+        type: "boolean"
+        default: true
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+
+  Sequence:
+    description: "A database sequence"
+    category: "Database & Data"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      start_value:
+        type: "integer"
+        default: 1
+      increment:
+        type: "integer"
+        default: 1
+      max_value:
+        type: "integer"
+        required: false
+      min_value:
+        type: "integer"
+        required: false
+      cycle:
+        type: "boolean"
+        default: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+
+  # Configuration
+  EnvironmentVariable:
+    description: "An environment variable"
+    category: "Configuration"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      value:
+        type: "string"
+        required: false
+        sensitive: true
+      description:
+        type: "string"
+        required: false
+      is_sensitive:
+        type: "boolean"
+        default: false
+      environment:
+        type: "string"
+        enum: ["development", "testing", "staging", "production"]
+    constraints:
+      - "UNIQUE (name, environment)"
+    indexes:
+      - "name"
+      - "environment"
+
+  ConfigurationFile:
+    description: "A configuration file"
+    category: "Configuration"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      path:
+        type: "string"
+        required: true
+      format:
+        type: "string"
+        enum: ["json", "yaml", "xml", "properties", "ini", "toml"]
+      environment:
+        type: "string"
+        enum: ["development", "testing", "staging", "production"]
+      checksum:
+        type: "string"
+        required: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "format"
+      - "environment"
+
+  Secret:
+    description: "A secret or credential"
+    category: "Configuration"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        enum: ["api_key", "password", "certificate", "token", "connection_string"]
+      description:
+        type: "string"
+        required: false
+      expires_at:
+        type: "datetime"
+        required: false
+      is_active:
+        type: "boolean"
+        default: true
+      environment:
+        type: "string"
+        enum: ["development", "testing", "staging", "production"]
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+      - "environment"
+
+  # Infrastructure
+  Server:
+    description: "A physical or virtual server"
+    category: "Infrastructure"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      ip_address:
+        type: "string"
+        required: false
+      hostname:
+        type: "string"
+        required: false
+      os:
+        type: "string"
+        required: false
+      cpu_cores:
+        type: "integer"
+        required: false
+      memory_gb:
+        type: "integer"
+        required: false
+      storage_gb:
+        type: "integer"
+        required: false
+      status:
+        type: "string"
+        enum: ["online", "offline", "maintenance"]
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "ip_address"
+      - "status"
+
+  Container:
+    description: "A containerized application"
+    category: "Infrastructure"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      image:
+        type: "string"
+        required: true
+      tag:
+        type: "string"
+        required: false
+      status:
+        type: "string"
+        enum: ["running", "stopped", "paused", "restarting"]
+      ports:
+        type: "array"
+        required: false
+      environment_variables:
+        type: "array"
+        required: false
+      created_at:
+        type: "datetime"
+        required: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "image"
+      - "status"
+
+  Pod:
+    description: "A Kubernetes pod"
+    category: "Infrastructure"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      namespace:
+        type: "string"
+        required: true
+      status:
+        type: "string"
+        enum: ["pending", "running", "succeeded", "failed", "unknown"]
+      node:
+        type: "string"
+        required: false
+      created_at:
+        type: "datetime"
+        required: false
+      labels:
+        type: "object"
+        required: false
+    constraints:
+      - "UNIQUE (name, namespace)"
+    indexes:
+      - "name"
+      - "namespace"
+      - "status"
+
+  Cluster:
+    description: "A compute cluster"
+    category: "Infrastructure"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        enum: ["kubernetes", "docker_swarm", "nomad", "mesos"]
+      version:
+        type: "string"
+        required: false
+      nodes_count:
+        type: "integer"
+        required: false
+      status:
+        type: "string"
+        enum: ["healthy", "degraded", "unhealthy"]
+      created_at:
+        type: "datetime"
+        required: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+      - "status"
+
+  LoadBalancer:
+    description: "A load balancer"
+    category: "Infrastructure"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        enum: ["application", "network", "gateway"]
+      algorithm:
+        type: "string"
+        enum: ["round_robin", "least_connections", "ip_hash", "weighted"]
+      health_check_path:
+        type: "string"
+        required: false
+      status:
+        type: "string"
+        enum: ["active", "inactive", "maintenance"]
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+      - "status"
+
+  Gateway:
+    description: "An API gateway or service gateway"
+    category: "Infrastructure"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        enum: ["api", "service", "ingress"]
+      endpoints:
+        type: "array"
+        required: false
+      authentication:
+        type: "array"
+        required: false
+      rate_limiting:
+        type: "object"
+        required: false
+      status:
+        type: "string"
+        enum: ["active", "inactive", "maintenance"]
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+      - "status"
+
+  Proxy:
+    description: "A proxy server"
+    category: "Infrastructure"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        enum: ["reverse", "forward", "transparent"]
+      upstream_servers:
+        type: "array"
+        required: false
+      ssl_enabled:
+        type: "boolean"
+        default: false
+      status:
+        type: "string"
+        enum: ["active", "inactive", "maintenance"]
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+      - "status"
+
+  CDN:
+    description: "A content delivery network"
+    category: "Infrastructure"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      provider:
+        type: "string"
+        required: false
+      edge_locations:
+        type: "array"
+        required: false
+      cache_behaviors:
+        type: "array"
+        required: false
+      ssl_certificate:
+        type: "string"
+        required: false
+      status:
+        type: "string"
+        enum: ["active", "inactive", "maintenance"]
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "provider"
+      - "status"
+
+  FileSystem:
+    description: "A file system or storage system"
+    category: "Infrastructure"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        enum: ["local", "nfs", "s3", "gcs", "azure_blob"]
+      mount_point:
+        type: "string"
+        required: false
+      capacity_gb:
+        type: "integer"
+        required: false
+      used_gb:
+        type: "integer"
+        required: false
+      status:
+        type: "string"
+        enum: ["mounted", "unmounted", "error"]
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+      - "status"
+
+  Bucket:
+    description: "An object storage bucket"
+    category: "Infrastructure"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      provider:
+        type: "string"
+        enum: ["aws_s3", "gcs", "azure_blob", "minio"]
+      region:
+        type: "string"
+        required: false
+      versioning_enabled:
+        type: "boolean"
+        default: false
+      encryption_enabled:
+        type: "boolean"
+        default: false
+      public_access:
+        type: "boolean"
+        default: false
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "provider"
+      - "region"
+
+  Volume:
+    description: "A storage volume"
+    category: "Infrastructure"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        enum: ["persistent", "ephemeral", "configmap", "secret"]
+      size_gb:
+        type: "integer"
+        required: false
+      access_mode:
+        type: "string"
+        enum: ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"]
+      storage_class:
+        type: "string"
+        required: false
+      status:
+        type: "string"
+        enum: ["bound", "available", "released", "failed"]
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+      - "status"
+
+  # Monitoring
+  LogStream:
+    description: "A log stream or logging channel"
+    category: "Monitoring"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      source:
+        type: "string"
+        required: false
+      level:
+        type: "string"
+        enum: ["DEBUG", "INFO", "WARN", "ERROR", "FATAL"]
+      format:
+        type: "string"
+        enum: ["json", "text", "structured"]
+      retention_days:
+        type: "integer"
+        required: false
+      is_active:
+        type: "boolean"
+        default: true
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "source"
+      - "level"
+
+  Metric:
+    description: "A performance or business metric"
+    category: "Monitoring"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      type:
+        type: "string"
+        enum: ["counter", "gauge", "histogram", "summary"]
+      unit:
+        type: "string"
+        required: false
+      description:
+        type: "string"
+        required: false
+      labels:
+        type: "array"
+        required: false
+      aggregation:
+        type: "string"
+        enum: ["sum", "avg", "min", "max", "count"]
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "type"
+
+  Alert:
+    description: "A monitoring alert or notification"
+    category: "Monitoring"
+    properties:
+      name:
+        type: "string"
+        required: true
+        unique: true
+      condition:
+        type: "string"
+        required: true
+      severity:
+        type: "string"
+        enum: ["low", "medium", "high", "critical"]
+      threshold:
+        type: "float"
+        required: false
+      duration:
+        type: "string"
+        required: false
+      notification_channels:
+        type: "array"
+        required: false
+      is_active:
+        type: "boolean"
+        default: true
+    constraints:
+      - "UNIQUE (name)"
+    indexes:
+      - "name"
+      - "severity"
+
+# Relationships Definition
+relationships:
+  # Service Level Relationships
+  - from: "Service"
+    to: "Module"
+    type: "CONTAINS"
+    description: "Service contains modules"
+
+  - from: "Service"
+    to: "Endpoint"
+    type: "EXPOSES"
+    description: "Service exposes endpoints"
+
+  - from: "Service"
+    to: "Route"
+    type: "EXPOSES"
+    description: "Service exposes routes"
+
+  - from: "Service"
+    to: "Database"
+    type: "OWNS"
+    description: "Service owns database"
+
+  - from: "Service"
+    to: "DatabaseCluster"
+    type: "OWNS"
+    description: "Service owns database cluster"
+
+  - from: "Service"
+    to: "EnvironmentVariable"
+    type: "USES"
+    description: "Service uses environment variable"
+
+  - from: "Service"
+    to: "ConfigurationFile"
+    type: "USES"
+    description: "Service uses configuration file"
+
+  - from: "Service"
+    to: "Secret"
+    type: "USES"
+    description: "Service uses secret"
+
+  # Cross-Service Communication
+  - from: "Service"
+    to: "Service"
+    type: "CALLS_API"
+    description: "Service calls API of another service"
+
+  - from: "Service"
+    to: "Service"
+    type: "PUBLISHES_EVENT"
+    description: "Service publishes event to another service"
+
+  - from: "Service"
+    to: "Service"
+    type: "SUBSCRIBES_TO"
+    description: "Service subscribes to another service"
+
+  # Code Structure Relationships - Module Level
+  - from: "Module"
+    to: "Class"
+    type: "CONTAINS"
+    description: "Module contains class"
+
+  - from: "Module"
+    to: "Interface"
+    type: "CONTAINS"
+    description: "Module contains interface"
+
+  - from: "Module"
+    to: "Function"
+    type: "CONTAINS"
+    description: "Module contains function"
+
+  - from: "Module"
+    to: "BusinessEntity"
+    type: "SERVES"
+    description: "Module serves business entity"
+
+  - from: "Module"
+    to: "BusinessProcess"
+    type: "SERVES"
+    description: "Module serves business process"
+
+  # Class Level
+  - from: "Class"
+    to: "Interface"
+    type: "IMPLEMENTS"
+    description: "Class implements interface"
+
+  - from: "Class"
+    to: "Class"
+    type: "EXTENDS"
+    description: "Class extends another class"
+
+  - from: "Class"
+    to: "Class"
+    type: "COMPOSED_OF"
+    description: "Class is composed of another class"
+
+  - from: "Class"
+    to: "Class"
+    type: "DEPENDS_ON"
+    description: "Class depends on another class"
+
+  - from: "Class"
+    to: "Function"
+    type: "DEPENDS_ON"
+    description: "Class depends on function"
+
+  - from: "Class"
+    to: "Variable"
+    type: "DEPENDS_ON"
+    description: "Class depends on variable"
+
+  - from: "Class"
+    to: "Method"
+    type: "CONTAINS"
+    description: "Class contains method"
+
+  - from: "Class"
+    to: "Variable"
+    type: "CONTAINS"
+    description: "Class contains variable"
+
+  - from: "Class"
+    to: "BusinessEntity"
+    type: "IMPLEMENTS"
+    description: "Class implements business entity"
+
+  - from: "Class"
+    to: "BusinessRule"
+    type: "ENFORCES"
+    description: "Class enforces business rule"
+
+  - from: "Class"
+    to: "BusinessEntity"
+    type: "MANAGES"
+    description: "Class manages business entity"
+
+  # Interface Level
+  - from: "Interface"
+    to: "Interface"
+    type: "EXTENDS"
+    description: "Interface extends another interface"
+
+  - from: "Interface"
+    to: "BusinessEntity"
+    type: "DEFINES"
+    description: "Interface defines business entity"
+
+  # Function Level
+  - from: "Function"
+    to: "Class"
+    type: "DEPENDS_ON"
+    description: "Function depends on class"
+
+  - from: "Function"
+    to: "Function"
+    type: "DEPENDS_ON"
+    description: "Function depends on another function"
+
+  - from: "Function"
+    to: "Method"
+    type: "DEPENDS_ON"
+    description: "Function depends on method"
+
+  - from: "Function"
+    to: "Variable"
+    type: "DEPENDS_ON"
+    description: "Function depends on variable"
+
+  - from: "Function"
+    to: "Function"
+    type: "CALLS"
+    description: "Function calls another function"
+
+  - from: "Function"
+    to: "Method"
+    type: "CALLS"
+    description: "Function calls method"
+
+  - from: "Function"
+    to: "BusinessCalculation"
+    type: "IMPLEMENTS"
+    description: "Function implements business calculation"
+
+  - from: "Function"
+    to: "BusinessRule"
+    type: "IMPLEMENTS"
+    description: "Function implements business rule"
+
+  - from: "Function"
+    to: "BusinessEvent"
+    type: "TRIGGERS"
+    description: "Function triggers business event"
+
+  - from: "Function"
+    to: "BusinessDecision"
+    type: "EXECUTES"
+    description: "Function executes business decision"
+
+  - from: "Function"
+    to: "Service"
+    type: "PUBLISHES_EVENT"
+    description: "Function publishes event to service"
+
+  - from: "Function"
+    to: "Service"
+    type: "SUBSCRIBES_TO"
+    description: "Function subscribes to service"
+
+  # Method Level
+  - from: "Method"
+    to: "Class"
+    type: "DEPENDS_ON"
+    description: "Method depends on class"
+
+  - from: "Method"
+    to: "Function"
+    type: "DEPENDS_ON"
+    description: "Method depends on function"
+
+  - from: "Method"
+    to: "Method"
+    type: "DEPENDS_ON"
+    description: "Method depends on another method"
+
+  - from: "Method"
+    to: "Variable"
+    type: "DEPENDS_ON"
+    description: "Method depends on variable"
+
+  - from: "Method"
+    to: "Function"
+    type: "CALLS"
+    description: "Method calls function"
+
+  - from: "Method"
+    to: "Method"
+    type: "CALLS"
+    description: "Method calls another method"
+
+  - from: "Method"
+    to: "BusinessRule"
+    type: "IMPLEMENTS"
+    description: "Method implements business rule"
+
+  - from: "Method"
+    to: "BusinessCalculation"
+    type: "IMPLEMENTS"
+    description: "Method implements business calculation"
+
+  - from: "Method"
+    to: "BusinessProcess"
+    type: "ORCHESTRATES"
+    description: "Method orchestrates business process"
+
+  - from: "Method"
+    to: "BusinessDecision"
+    type: "EXECUTES"
+    description: "Method executes business decision"
+
+  - from: "Method"
+    to: "BusinessEvent"
+    type: "TRIGGERS"
+    description: "Method triggers business event"
+
+  - from: "Method"
+    to: "BusinessRule"
+    type: "VALIDATES"
+    description: "Method validates business rule"
+
+  - from: "Method"
+    to: "Service"
+    type: "PUBLISHES_EVENT"
+    description: "Method publishes event to service"
+
+  - from: "Method"
+    to: "Service"
+    type: "SUBSCRIBES_TO"
+    description: "Method subscribes to service"
+
+  # Variable Level
+  - from: "Variable"
+    to: "BusinessEntity"
+    type: "STORES"
+    description: "Variable stores business entity"
+
+  - from: "Variable"
+    to: "BusinessRule"
+    type: "REPRESENTS"
+    description: "Variable represents business rule"
+
+  # Web Layer Relationships
+  - from: "Route"
+    to: "Endpoint"
+    type: "MAPS_TO"
+    description: "Route maps to endpoint"
+
+  - from: "Route"
+    to: "Function"
+    type: "HANDLED_BY"
+    description: "Route handled by function"
+
+  - from: "Route"
+    to: "Method"
+    type: "HANDLED_BY"
+    description: "Route handled by method"
+
+  - from: "Endpoint"
+    to: "Endpoint"
+    type: "CALLS_API"
+    description: "Endpoint calls another endpoint"
+
+  - from: "Endpoint"
+    to: "BusinessRule"
+    type: "EXPOSES"
+    description: "Endpoint exposes business logic"
+
+  - from: "Endpoint"
+    to: "Function"
+    type: "CALLS"
+    description: "Endpoint calls function"
+
+  - from: "Endpoint"
+    to: "Method"
+    type: "CALLS"
+    description: "Endpoint calls method"
+
+  - from: "Endpoint"
+    to: "Class"
+    type: "DEPENDS_ON"
+    description: "Endpoint depends on class"
+
+  # Business Logic Relationships
+  - from: "BusinessProcess"
+    to: "BusinessRule"
+    type: "CONTAINS"
+    description: "Business process contains business rule"
+
+  - from: "BusinessProcess"
+    to: "BusinessEvent"
+    type: "TRIGGERS"
+    description: "Business process triggers business event"
+
+  - from: "BusinessEvent"
+    to: "BusinessProcess"
+    type: "TRIGGERS"
+    description: "Business event triggers business process"
+
+  - from: "BusinessDecision"
+    to: "BusinessRule"
+    type: "DEPENDS_ON"
+    description: "Business decision depends on business rule"
+
+  - from: "BusinessCalculation"
+    to: "BusinessRule"
+    type: "USES"
+    description: "Business calculation uses business rule"
+
+  - from: "BusinessEntity"
+    to: "BusinessRule"
+    type: "HAS"
+    description: "Business entity has business rule"
+
+  - from: "BusinessEntity"
+    to: "BusinessProcess"
+    type: "PARTICIPATES_IN"
+    description: "Business entity participates in business process"
+
+  - from: "BusinessEntity"
+    to: "BusinessEvent"
+    type: "GENERATES"
+    description: "Business entity generates business event"
+
+  # Database Hierarchical Relationships
+  - from: "DatabaseCluster"
+    to: "Database"
+    type: "CONTAINS"
+    description: "Database cluster contains database"
+
+  - from: "Database"
+    to: "Schema"
+    type: "CONTAINS"
+    description: "Database contains schema"
+
+  - from: "Schema"
+    to: "Table"
+    type: "CONTAINS"
+    description: "Schema contains table"
+
+  - from: "Schema"
+    to: "View"
+    type: "CONTAINS"
+    description: "Schema contains view"
+
+  - from: "Schema"
+    to: "StoredProcedure"
+    type: "CONTAINS"
+    description: "Schema contains stored procedure"
+
+  - from: "Schema"
+    to: "Trigger"
+    type: "CONTAINS"
+    description: "Schema contains trigger"
+
+  - from: "Table"
+    to: "Column"
+    type: "CONTAINS"
+    description: "Table contains column"
+
+  - from: "Table"
+    to: "Index"
+    type: "CONTAINS"
+    description: "Table contains index"
+
+  - from: "Table"
+    to: "PrimaryKey"
+    type: "CONTAINS"
+    description: "Table contains primary key"
+
+  - from: "Table"
+    to: "ForeignKey"
+    type: "CONTAINS"
+    description: "Table contains foreign key"
+
+  - from: "Table"
+    to: "Constraint"
+    type: "CONTAINS"
+    description: "Table contains constraint"
+
+  - from: "Table"
+    to: "Trigger"
+    type: "CONTAINS"
+    description: "Table contains trigger"
+
+  # NoSQL Database Relationships
+  - from: "Database"
+    to: "Collection"
+    type: "CONTAINS"
+    description: "Database contains collection"
+
+  - from: "Collection"
+    to: "Document"
+    type: "CONTAINS"
+    description: "Collection contains document"
+
+  - from: "Document"
+    to: "Field"
+    type: "CONTAINS"
+    description: "Document contains field"
+
+  # Database References and Dependencies
+  - from: "Table"
+    to: "Table"
+    type: "REFERENCES"
+    description: "Table references another table"
+
+  - from: "View"
+    to: "Table"
+    type: "DEPENDS_ON"
+    description: "View depends on table"
+
+  - from: "Trigger"
+    to: "Table"
+    type: "ATTACHED_TO"
+    description: "Trigger attached to table"
+
+  - from: "Index"
+    to: "Table"
+    type: "OPTIMIZES"
+    description: "Index optimizes table"
+
+  - from: "StoredProcedure"
+    to: "Table"
+    type: "OPERATES_ON"
+    description: "Stored procedure operates on table"
+
+  - from: "Constraint"
+    to: "Column"
+    type: "ENFORCES"
+    description: "Constraint enforces column"
+
+  - from: "ForeignKey"
+    to: "PrimaryKey"
+    type: "REFERENCES"
+    description: "Foreign key references primary key"
+
+  - from: "Sequence"
+    to: "Column"
+    type: "GENERATES"
+    description: "Sequence generates column values"
+
+  # Database Replication
+  - from: "Database"
+    to: "Database"
+    type: "REPLICATES_TO"
+    description: "Database replicates to another database"
+
+  - from: "Database"
+    to: "DatabaseCluster"
+    type: "SHARDS_ACROSS"
+    description: "Database shards across database cluster"
+
+  # Code-to-Database Relationships
+  - from: "Class"
+    to: "Table"
+    type: "READS_FROM"
+    description: "Class reads from table"
+
+  - from: "Class"
+    to: "Table"
+    type: "WRITES_TO"
+    description: "Class writes to table"
+
+  - from: "Class"
+    to: "Collection"
+    type: "READS_FROM"
+    description: "Class reads from collection"
+
+  - from: "Class"
+    to: "Collection"
+    type: "WRITES_TO"
+    description: "Class writes to collection"
+
+  - from: "Method"
+    to: "Table"
+    type: "QUERIES"
+    description: "Method queries table"
+
+  - from: "Method"
+    to: "Collection"
+    type: "QUERIES"
+    description: "Method queries collection"
+
+  - from: "Function"
+    to: "Table"
+    type: "INSERTS_INTO"
+    description: "Function inserts into table"
+
+  - from: "Function"
+    to: "Collection"
+    type: "INSERTS_INTO"
+    description: "Function inserts into collection"
+
+  - from: "Function"
+    to: "Table"
+    type: "UPDATES"
+    description: "Function updates table"
+
+  - from: "Function"
+    to: "Collection"
+    type: "UPDATES"
+    description: "Function updates collection"
+
+  - from: "Function"
+    to: "Table"
+    type: "DELETES_FROM"
+    description: "Function deletes from table"
+
+  - from: "Function"
+    to: "Collection"
+    type: "DELETES_FROM"
+    description: "Function deletes from collection"
+
+  # ORM/Mapping Relationships
+  - from: "Class"
+    to: "Table"
+    type: "MAPS_TO"
+    description: "Class maps to table"
+
+  - from: "Class"
+    to: "Collection"
+    type: "MAPS_TO"
+    description: "Class maps to collection"
+
+  - from: "Method"
+    to: "Column"
+    type: "MAPS_TO"
+    description: "Method maps to column"
+
+  - from: "Method"
+    to: "Field"
+    type: "MAPS_TO"
+    description: "Method maps to field"
+
+  - from: "Function"
+    to: "StoredProcedure"
+    type: "EXECUTES"
+    description: "Function executes stored procedure"
+
+  # Configuration Relationships
+  - from: "Class"
+    to: "EnvironmentVariable"
+    type: "USES"
+    description: "Class uses environment variable"
+
+  - from: "Function"
+    to: "EnvironmentVariable"
+    type: "USES"
+    description: "Function uses environment variable"
+
+  - from: "Method"
+    to: "EnvironmentVariable"
+    type: "USES"
+    description: "Method uses environment variable"
+
+  - from: "Service"
+    to: "ConfigurationFile"
+    type: "LOADS"
+    description: "Service loads configuration file"
+
+  - from: "Class"
+    to: "Secret"
+    type: "ACCESSES"
+    description: "Class accesses secret"
+
+  - from: "Function"
+    to: "Secret"
+    type: "ACCESSES"
+    description: "Function accesses secret"
+
+  - from: "Method"
+    to: "Secret"
+    type: "ACCESSES"
+    description: "Method accesses secret"
+
+  # Infrastructure Relationships - Deployment Hierarchy
+  - from: "Cluster"
+    to: "Pod"
+    type: "CONTAINS"
+    description: "Cluster contains pod"
+
+  - from: "Pod"
+    to: "Container"
+    type: "CONTAINS"
+    description: "Pod contains container"
+
+  - from: "Container"
+    to: "Service"
+    type: "RUNS"
+    description: "Container runs service"
+
+  - from: "Server"
+    to: "Container"
+    type: "HOSTS"
+    description: "Server hosts container"
+
+  - from: "Server"
+    to: "Service"
+    type: "HOSTS"
+    description: "Server hosts service"
+
+  # Infrastructure Dependencies
+  - from: "Service"
+    to: "Container"
+    type: "DEPLOYED_TO"
+    description: "Service deployed to container"
+
+  - from: "Container"
+    to: "Server"
+    type: "RUNS_ON"
+    description: "Container runs on server"
+
+  - from: "Service"
+    to: "LoadBalancer"
+    type: "USES"
+    description: "Service uses load balancer"
+
+  - from: "Service"
+    to: "Gateway"
+    type: "USES"
+    description: "Service uses gateway"
+
+  - from: "Service"
+    to: "Proxy"
+    type: "USES"
+    description: "Service uses proxy"
+
+  - from: "Service"
+    to: "Bucket"
+    type: "STORES_IN"
+    description: "Service stores data in bucket"
+
+  - from: "Service"
+    to: "FileSystem"
+    type: "USES"
+    description: "Service uses file system"
+
+  - from: "Container"
+    to: "Volume"
+    type: "MOUNTS"
+    description: "Container mounts volume"
+
+  # Network Infrastructure
+  - from: "LoadBalancer"
+    to: "Service"
+    type: "ROUTES_TO"
+    description: "Load balancer routes to service"
+
+  - from: "Gateway"
+    to: "Service"
+    type: "PROXIES_TO"
+    description: "Gateway proxies to service"
+
+  - from: "Proxy"
+    to: "Service"
+    type: "FORWARDS_TO"
+    description: "Proxy forwards to service"
+
+  - from: "CDN"
+    to: "Service"
+    type: "CACHES"
+    description: "CDN caches service"
+
+  # Monitoring Relationships
+  - from: "Service"
+    to: "LogStream"
+    type: "LOGS_TO"
+    description: "Service logs to log stream"
+
+  - from: "Method"
+    to: "Metric"
+    type: "EMITS"
+    description: "Method emits metric"
+
+  - from: "Function"
+    to: "Alert"
+    type: "TRIGGERS"
+    description: "Function triggers alert"
+
+  - from: "Service"
+    to: "Alert"
+    type: "MONITORED_BY"
+    description: "Service monitored by alert"
+
+  - from: "Container"
+    to: "LogStream"
+    type: "LOGS_TO"
+    description: "Container logs to log stream"
+
+  - from: "Server"
+    to: "Metric"
+    type: "EMITS"
+    description: "Server emits metric"
+
+  # Storage Relationships
+  - from: "Service"
+    to: "Bucket"
+    type: "READS_FROM"
+    description: "Service reads from bucket"
+
+  - from: "Service"
+    to: "Bucket"
+    type: "WRITES_TO"
+    description: "Service writes to bucket"
+
+  - from: "Function"
+    to: "FileSystem"
+    type: "ACCESSES"
+    description: "Function accesses file system"
+
+  - from: "Container"
+    to: "Volume"
+    type: "USES"
+    description: "Container uses volume"

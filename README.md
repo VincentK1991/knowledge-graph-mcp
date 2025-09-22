@@ -51,7 +51,7 @@ This structured approach to knowledge representation enables AI agents to reason
 
 We focus on software development as our primary domain because it's where our expertise lies. However, the knowledge graph architecture is domain-agnostic and our MCP server is built for extensibility. Users can easily adapt the server to capture knowledge in any domain by:
 
-- **Custom Schema Definition**: Replace or extend the existing schemas with domain-specific entities and relationships
+- **YAML Schema Definition**: Create domain-specific schemas using simple YAML files with entities and relationships
 - **Knowledge Domain Encoding**: Model any structured knowledge domain where relationships between entities are critical
 - **Expert Knowledge Capture**: Encode domain expertise in a format that's accessible to both humans and AI systems
 
@@ -62,7 +62,7 @@ The key insight is that **schemas** (the lists of entities and their associated 
 - 🔧 **CRUD Operations**: Full create, read, update, delete for nodes and relationships
 - 🧠 **Entity Normalization**: Automatic duplicate detection and merging
 - 📊 **Graph Analytics**: Structure analysis and statistics
-- ✅ **Schema Validation**: Automatic validation against predefined schema
+- ✅ **Schema Validation**: Automatic validation against predefined schema for both entities and relationship triplets ensuring data integrity
 - 🔋 **Battery Included**: Pre-configured integration with Neo4j, the industry-leading graph database
 - 🧪 **Comprehensive Tests**: Unit, integration, and performance tests
 
@@ -110,6 +110,35 @@ export NEO4J_PASSWORD="password"
 ```bash
 python -m pytest tests/ -v
 ```
+
+## MCP Tools
+
+The server provides several categories of MCP tools for interacting with the knowledge graph:
+
+### Node Operations
+- `create_graph_node`: Create individual nodes with schema validation
+- `query_graph_nodes`: Query nodes with filters and limits
+- `update_graph_node`: Update node properties
+- `delete_graph_node`: Delete nodes (with optional force delete)
+
+### Relationship Operations
+- `create_graph_relationship`: Create relationships with full triplet validation
+- `validate_graph_relationship`: Validate relationships without creating them
+- `query_graph_relationships`: Query relationships with entity type filters
+- `delete_graph_relationship`: Delete specific relationships
+
+### Combined Operations
+- `create_node_with_relationship`: Create a new node and connect it to an existing node
+- `create_nodes_with_relationship`: Create two nodes and connect them with a relationship
+- `create_graph_subgraph`: Create multiple nodes and relationships in a single transaction
+
+### Analytics & Utilities
+- `find_similar_nodes`: Find nodes with similar properties (e.g., similar names)
+- `find_isolated_nodes`: Identify nodes with no connections or limited connectivity
+- `merge_duplicate_entities`: Merge two duplicate entities into one
+- `analyze_graph_structure`: Get comprehensive statistics about the graph structure
+
+All tools include comprehensive validation against the YAML schema system, ensuring data integrity and consistency.
 
 ## Registering with Cursor or CLI tools
 
@@ -164,11 +193,13 @@ environment:
 Here's what's coming next:
 
 ### 🎯 Near-term Goals
-- **📋 Flexible Schema Configuration**: Extract graph schemas to separate YAML files for easy customization across different knowledge domains
-- **✅ Enhanced Relationship Validation**: Implement comprehensive schema validation for all relationship types
 - **🔍 Semantic Search**: Add vector indexing capabilities for intelligent, meaning-based graph queries
+- **🔗 Graph Clustering & Communities**: Automatic discovery of related entity clusters and knowledge communities\
 
 ### 🚀 Future Vision
 - **📊 Interactive Graph Visualization**: Built-in MCP tool for interactive visualization of graph data
 - **🧠 Advanced Entity Normalization**: AI powered duplicate detection and entity resolution
-- **🔗 Graph Clustering & Communities**: Automatic discovery of related entity clusters and knowledge communities
+- **PageRank & Centrality**: Identify the most important entities and knowledge hubs in your domain
+- **Shortest Path Analysis**: Find optimal knowledge pathways and dependency chains
+- **Temporal Graph Analysis**: Track how your architecture evolves over time
+- **Cross-Domain Linking**: Connect software engineering knowledge with business processes, compliance, and operations

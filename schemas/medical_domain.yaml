@@ -1,0 +1,453 @@
+# Knowledge Graph Schema: Medical Domain
+# Version: 1.0.0
+# Description: Schema for medical and healthcare knowledge representation
+
+metadata:
+  version: "1.0.0"
+  name: "Medical Domain"
+  description: "Knowledge graph schema for medical and healthcare systems"
+  categories:
+    - "Clinical"
+    - "Administrative"
+    - "Research"
+    - "Pharmaceutical"
+
+# Entity Types Definition
+entity_types:
+  # Clinical Entities
+  Patient:
+    description: "A patient in the healthcare system"
+    category: "Clinical"
+    properties:
+      patient_id:
+        type: "string"
+        required: true
+        unique: true
+      first_name:
+        type: "string"
+        required: true
+      last_name:
+        type: "string"
+        required: true
+      date_of_birth:
+        type: "date"
+        required: true
+      gender:
+        type: "string"
+        enum: ["male", "female", "other"]
+      medical_record_number:
+        type: "string"
+        unique: true
+    constraints:
+      - "UNIQUE (patient_id)"
+      - "UNIQUE (medical_record_number)"
+    indexes:
+      - "patient_id"
+      - "medical_record_number"
+      - "last_name"
+
+  Physician:
+    description: "A medical doctor or physician"
+    category: "Clinical"
+    properties:
+      physician_id:
+        type: "string"
+        required: true
+        unique: true
+      first_name:
+        type: "string"
+        required: true
+      last_name:
+        type: "string"
+        required: true
+      license_number:
+        type: "string"
+        required: true
+        unique: true
+      specialty:
+        type: "string"
+        required: false
+      years_experience:
+        type: "integer"
+        required: false
+    constraints:
+      - "UNIQUE (physician_id)"
+      - "UNIQUE (license_number)"
+    indexes:
+      - "physician_id"
+      - "license_number"
+      - "specialty"
+
+  Diagnosis:
+    description: "A medical diagnosis"
+    category: "Clinical"
+    properties:
+      diagnosis_id:
+        type: "string"
+        required: true
+        unique: true
+      icd_code:
+        type: "string"
+        required: true
+      description:
+        type: "string"
+        required: true
+      severity:
+        type: "string"
+        enum: ["mild", "moderate", "severe", "critical"]
+      date_diagnosed:
+        type: "datetime"
+        required: true
+    constraints:
+      - "UNIQUE (diagnosis_id)"
+    indexes:
+      - "diagnosis_id"
+      - "icd_code"
+      - "severity"
+
+  Treatment:
+    description: "A medical treatment or procedure"
+    category: "Clinical"
+    properties:
+      treatment_id:
+        type: "string"
+        required: true
+        unique: true
+      name:
+        type: "string"
+        required: true
+      description:
+        type: "string"
+        required: false
+      duration:
+        type: "string"
+        required: false
+      cost:
+        type: "float"
+        required: false
+    constraints:
+      - "UNIQUE (treatment_id)"
+    indexes:
+      - "treatment_id"
+      - "name"
+
+  Medication:
+    description: "A pharmaceutical medication"
+    category: "Pharmaceutical"
+    properties:
+      medication_id:
+        type: "string"
+        required: true
+        unique: true
+      name:
+        type: "string"
+        required: true
+      generic_name:
+        type: "string"
+        required: false
+      dosage:
+        type: "string"
+        required: false
+      route:
+        type: "string"
+        enum: ["oral", "injection", "topical", "inhalation"]
+      side_effects:
+        type: "array"
+        required: false
+    constraints:
+      - "UNIQUE (medication_id)"
+    indexes:
+      - "medication_id"
+      - "name"
+      - "generic_name"
+
+  Hospital:
+    description: "A healthcare facility"
+    category: "Administrative"
+    properties:
+      hospital_id:
+        type: "string"
+        required: true
+        unique: true
+      name:
+        type: "string"
+        required: true
+      address:
+        type: "string"
+        required: true
+      phone:
+        type: "string"
+        required: false
+      capacity:
+        type: "integer"
+        required: false
+      type:
+        type: "string"
+        enum: ["general", "specialty", "teaching", "research"]
+    constraints:
+      - "UNIQUE (hospital_id)"
+    indexes:
+      - "hospital_id"
+      - "name"
+      - "type"
+
+  Department:
+    description: "A department within a healthcare facility"
+    category: "Administrative"
+    properties:
+      department_id:
+        type: "string"
+        required: true
+        unique: true
+      name:
+        type: "string"
+        required: true
+      specialty:
+        type: "string"
+        required: false
+      head_physician:
+        type: "string"
+        required: false
+    constraints:
+      - "UNIQUE (department_id)"
+    indexes:
+      - "department_id"
+      - "name"
+      - "specialty"
+
+  MedicalDevice:
+    description: "A medical device or equipment"
+    category: "Clinical"
+    properties:
+      device_id:
+        type: "string"
+        required: true
+        unique: true
+      name:
+        type: "string"
+        required: true
+      manufacturer:
+        type: "string"
+        required: false
+      model:
+        type: "string"
+        required: false
+      category:
+        type: "string"
+        enum: ["diagnostic", "therapeutic", "monitoring", "surgical"]
+      status:
+        type: "string"
+        enum: ["operational", "maintenance", "retired"]
+    constraints:
+      - "UNIQUE (device_id)"
+    indexes:
+      - "device_id"
+      - "name"
+      - "category"
+      - "status"
+
+  ClinicalTrial:
+    description: "A clinical research trial"
+    category: "Research"
+    properties:
+      trial_id:
+        type: "string"
+        required: true
+        unique: true
+      title:
+        type: "string"
+        required: true
+      phase:
+        type: "string"
+        enum: ["Phase I", "Phase II", "Phase III", "Phase IV"]
+      status:
+        type: "string"
+        enum: ["recruiting", "active", "completed", "terminated"]
+      start_date:
+        type: "date"
+        required: false
+      end_date:
+        type: "date"
+        required: false
+    constraints:
+      - "UNIQUE (trial_id)"
+    indexes:
+      - "trial_id"
+      - "phase"
+      - "status"
+
+  LabTest:
+    description: "A laboratory test"
+    category: "Clinical"
+    properties:
+      test_id:
+        type: "string"
+        required: true
+        unique: true
+      name:
+        type: "string"
+        required: true
+      test_code:
+        type: "string"
+        required: true
+      normal_range:
+        type: "string"
+        required: false
+      units:
+        type: "string"
+        required: false
+      category:
+        type: "string"
+        enum: ["blood", "urine", "imaging", "biopsy"]
+    constraints:
+      - "UNIQUE (test_id)"
+    indexes:
+      - "test_id"
+      - "name"
+      - "test_code"
+      - "category"
+
+# Relationships Definition
+relationships:
+  # Patient-Physician Relationships
+  - from: "Patient"
+    to: "Physician"
+    type: "TREATED_BY"
+    description: "Patient is treated by physician"
+
+  - from: "Physician"
+    to: "Patient"
+    type: "TREATS"
+    description: "Physician treats patient"
+
+  # Diagnosis Relationships
+  - from: "Patient"
+    to: "Diagnosis"
+    type: "HAS_DIAGNOSIS"
+    description: "Patient has diagnosis"
+
+  - from: "Physician"
+    to: "Diagnosis"
+    type: "MAKES_DIAGNOSIS"
+    description: "Physician makes diagnosis"
+
+  - from: "Diagnosis"
+    to: "Treatment"
+    type: "REQUIRES_TREATMENT"
+    description: "Diagnosis requires treatment"
+
+  # Treatment Relationships
+  - from: "Patient"
+    to: "Treatment"
+    type: "RECEIVES_TREATMENT"
+    description: "Patient receives treatment"
+
+  - from: "Physician"
+    to: "Treatment"
+    type: "PRESCRIBES_TREATMENT"
+    description: "Physician prescribes treatment"
+
+  - from: "Treatment"
+    to: "Medication"
+    type: "INCLUDES_MEDICATION"
+    description: "Treatment includes medication"
+
+  # Medication Relationships
+  - from: "Patient"
+    to: "Medication"
+    type: "TAKES_MEDICATION"
+    description: "Patient takes medication"
+
+  - from: "Physician"
+    to: "Medication"
+    type: "PRESCRIBES_MEDICATION"
+    description: "Physician prescribes medication"
+
+  - from: "Medication"
+    to: "Medication"
+    type: "INTERACTS_WITH"
+    description: "Medication interacts with another medication"
+
+  # Hospital and Department Relationships
+  - from: "Hospital"
+    to: "Department"
+    type: "CONTAINS"
+    description: "Hospital contains department"
+
+  - from: "Department"
+    to: "Physician"
+    type: "EMPLOYS"
+    description: "Department employs physician"
+
+  - from: "Physician"
+    to: "Department"
+    type: "WORKS_IN"
+    description: "Physician works in department"
+
+  - from: "Patient"
+    to: "Hospital"
+    type: "ADMITTED_TO"
+    description: "Patient admitted to hospital"
+
+  - from: "Patient"
+    to: "Department"
+    type: "TREATED_IN"
+    description: "Patient treated in department"
+
+  # Medical Device Relationships
+  - from: "Department"
+    to: "MedicalDevice"
+    type: "USES"
+    description: "Department uses medical device"
+
+  - from: "Treatment"
+    to: "MedicalDevice"
+    type: "REQUIRES_DEVICE"
+    description: "Treatment requires medical device"
+
+  - from: "Physician"
+    to: "MedicalDevice"
+    type: "OPERATES"
+    description: "Physician operates medical device"
+
+  # Clinical Trial Relationships
+  - from: "Patient"
+    to: "ClinicalTrial"
+    type: "PARTICIPATES_IN"
+    description: "Patient participates in clinical trial"
+
+  - from: "Physician"
+    to: "ClinicalTrial"
+    type: "LEADS"
+    description: "Physician leads clinical trial"
+
+  - from: "ClinicalTrial"
+    to: "Medication"
+    type: "TESTS"
+    description: "Clinical trial tests medication"
+
+  - from: "Hospital"
+    to: "ClinicalTrial"
+    type: "HOSTS"
+    description: "Hospital hosts clinical trial"
+
+  # Lab Test Relationships
+  - from: "Patient"
+    to: "LabTest"
+    type: "UNDERGOES"
+    description: "Patient undergoes lab test"
+
+  - from: "Physician"
+    to: "LabTest"
+    type: "ORDERS"
+    description: "Physician orders lab test"
+
+  - from: "Diagnosis"
+    to: "LabTest"
+    type: "CONFIRMED_BY"
+    description: "Diagnosis confirmed by lab test"
+
+  - from: "LabTest"
+    to: "MedicalDevice"
+    type: "PERFORMED_WITH"
+    description: "Lab test performed with medical device"

@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional
 from mcp.server.fastmcp import FastMCP
 
 from ..db_operations import create_relationship, execute_cypher
+from ..schema_validation import validate_relationship_schema
 
 logger = logging.getLogger("knowledge-graph-mcp.relationship_tools")
 
@@ -46,6 +47,19 @@ def register_relationship_tools(mcp: FastMCP):
             if properties:
                 parsed_properties = json.loads(properties)
 
+            # Validate the relationship before creating
+            validation = await validate_relationship_schema(
+                from_node_id, to_node_id, relationship_type, database
+            )
+
+            if not validation["valid"]:
+                return {
+                    "success": False,
+                    "error": "Relationship validation failed",
+                    "validation_errors": validation["errors"],
+                    "warnings": validation.get("warnings", []),
+                }
+
             # Create the relationship
             relationship = await create_relationship(
                 from_node_id, to_node_id, relationship_type, parsed_properties, database
@@ -55,6 +69,7 @@ def register_relationship_tools(mcp: FastMCP):
                 "success": True,
                 "relationship": relationship,
                 "message": f"Successfully created {relationship_type} relationship",
+                "validation_info": validation.get("info", {}),
             }
 
         except json.JSONDecodeError as e:
@@ -145,6 +160,48 @@ def register_relationship_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
+    async def validate_graph_relationship(
+        from_node_id: str,
+        to_node_id: str,
+        relationship_type: str,
+        database: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Validate a relationship against the schema without creating it.
+
+        Args:
+            from_node_id: Element ID of the source node
+            to_node_id: Element ID of the target node
+            relationship_type: Type of relationship to validate
+            database: Optional database name
+
+        Returns:
+            Validation result with detailed information
+        """
+        try:
+            logger.info(f"Validating {relationship_type} relationship via MCP")
+
+            validation = await validate_relationship_schema(
+                from_node_id, to_node_id, relationship_type, database
+            )
+
+            return {
+                "success": True,
+                "valid": validation["valid"],
+                "relationship_type": relationship_type,
+                "validation_errors": validation["errors"],
+                "warnings": validation.get("warnings", []),
+                "info": validation.get("info", {}),
+                "message": "Validation completed"
+                if validation["valid"]
+                else "Validation failed",
+            }
+
+        except Exception as e:
+            logger.error(f"Error validating relationship: {str(e)}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
     async def delete_graph_relationship(
         relationship_id: str, database: Optional[str] = None
     ) -> Dict[str, Any]:
@@ -188,4 +245,16 @@ def register_relationship_tools(mcp: FastMCP):
         except Exception as e:
             logger.error(f"Error deleting relationship: {str(e)}")
             return {"success": False, "error": str(e)}
+
+
+
+
+
+
+
+
+
+
+
+
 

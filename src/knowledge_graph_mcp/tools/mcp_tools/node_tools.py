@@ -9,8 +9,8 @@ from typing import Any, Dict, Optional
 
 from mcp.server.fastmcp import FastMCP
 
-from ...resources.schemas import knowledge_graph_schema
 from ..db_operations import create_node, execute_cypher, query_nodes
+from ..schema_validation import validate_entity_schema
 
 logger = logging.getLogger("knowledge-graph-mcp.node_tools")
 
@@ -40,7 +40,7 @@ def register_node_tools(mcp: FastMCP):
             parsed_properties = json.loads(properties)
 
             # Validate against schema
-            validation = await validate_entity_schema_internal(entity_type, properties)
+            validation = await validate_entity_schema(entity_type, properties)
             if not validation["valid"]:
                 return {
                     "success": False,
@@ -231,67 +231,12 @@ def register_node_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
 
-async def validate_entity_schema_internal(
-    entity_type: str, properties: str
-) -> Dict[str, Any]:
-    """Internal entity schema validation function."""
-    try:
-        # Parse properties
-        parsed_properties = json.loads(properties)
 
-        # Get entity schema
-        entity_schema = knowledge_graph_schema.get_entity_schema(entity_type)
-        if not entity_schema:
-            return {"valid": False, "errors": [f"Unknown entity type: {entity_type}"]}
 
-        errors = []
-        warnings = []
 
-        # Check required properties
-        required_props = [
-            prop_name
-            for prop_name, prop_def in entity_schema.get("properties", {}).items()
-            if prop_def.get("required", False)
-        ]
 
-        for req_prop in required_props:
-            if req_prop not in parsed_properties:
-                errors.append(f"Missing required property: {req_prop}")
 
-        # Check property types and constraints
-        for prop_name, prop_value in parsed_properties.items():
-            if prop_name in entity_schema.get("properties", {}):
-                prop_def = entity_schema["properties"][prop_name]
 
-                # Check enum values
-                if "enum" in prop_def and prop_value not in prop_def["enum"]:
-                    errors.append(
-                        f"Invalid value for {prop_name}. Must be one of: {prop_def['enum']}"
-                    )
 
-                # Check data types (basic validation)
-                expected_type = prop_def.get("type")
-                if expected_type == "integer" and not isinstance(prop_value, int):
-                    errors.append(f"Property {prop_name} must be an integer")
-                elif expected_type == "boolean" and not isinstance(prop_value, bool):
-                    errors.append(f"Property {prop_name} must be a boolean")
-                elif expected_type == "array" and not isinstance(prop_value, list):
-                    errors.append(f"Property {prop_name} must be an array")
-            else:
-                warnings.append(
-                    f"Property {prop_name} is not defined in schema for {entity_type}"
-                )
 
-        return {
-            "valid": len(errors) == 0,
-            "entity_type": entity_type,
-            "errors": errors,
-            "warnings": warnings,
-            "validated_properties": list(parsed_properties.keys()),
-        }
-
-    except json.JSONDecodeError as e:
-        return {"valid": False, "errors": [f"Invalid JSON in properties: {str(e)}"]}
-    except Exception:
-        raise
 
