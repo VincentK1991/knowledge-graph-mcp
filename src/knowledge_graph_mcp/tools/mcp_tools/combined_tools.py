@@ -5,11 +5,10 @@ Handles creation of nodes and relationships in single operations with full valid
 
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from mcp.server.fastmcp import FastMCP
 
-from ...resources.schemas import knowledge_graph_schema
 from ..db_operations import create_node, create_relationship, execute_cypher
 from ..schema_validation import (
     validate_entity_schema,
@@ -24,12 +23,12 @@ def register_combined_tools(mcp: FastMCP):
     """Register all combined creation tools with the MCP server."""
 
     @mcp.tool()
-    async def create_node_with_relationship(
+    async def create_node_with_relationship(  # pyright: ignore
         from_node_id: str,
         to_entity_type: str,
-        to_properties: str,
+        to_properties: Dict[str, Any],
         relationship_type: str,
-        relationship_properties: Optional[str] = None,
+        relationship_properties: Optional[Dict[str, Any]] = None,
         database: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
@@ -38,9 +37,9 @@ def register_combined_tools(mcp: FastMCP):
         Args:
             from_node_id: Element ID of the existing source node
             to_entity_type: Type of the new node to create (e.g., "Service", "Class", "Database")
-            to_properties: JSON string of properties for the new node
+            to_properties: Dictionary of properties for the new node
             relationship_type: Type of relationship to create (e.g., "CONTAINS", "DEPENDS_ON")
-            relationship_properties: Optional JSON string of relationship properties
+            relationship_properties: Optional dictionary of relationship properties
             database: Optional database name
 
         Returns:
@@ -51,15 +50,9 @@ def register_combined_tools(mcp: FastMCP):
                 f"Creating {to_entity_type} node with {relationship_type} relationship via MCP"
             )
 
-            # Parse properties
-            parsed_to_properties = json.loads(to_properties)
-            parsed_rel_properties = None
-            if relationship_properties:
-                parsed_rel_properties = json.loads(relationship_properties)
-
             # Step 1: Validate the new node schema
             node_validation = await validate_entity_schema(
-                to_entity_type, to_properties
+                to_entity_type, json.dumps(to_properties)
             )
             if not node_validation["valid"]:
                 return {
@@ -70,7 +63,7 @@ def register_combined_tools(mcp: FastMCP):
                 }
 
             # Step 2: Create the new node first
-            new_node = await create_node(to_entity_type, parsed_to_properties, database)
+            new_node = await create_node(to_entity_type, to_properties, database)
             new_node_id = new_node["node_id"]
 
             # Step 3: Validate the relationship
@@ -105,7 +98,7 @@ def register_combined_tools(mcp: FastMCP):
                 from_node_id,
                 new_node_id,
                 relationship_type,
-                parsed_rel_properties,
+                relationship_properties,
                 database,
             )
 
@@ -118,21 +111,18 @@ def register_combined_tools(mcp: FastMCP):
                 "message": f"Successfully created {to_entity_type} node with {relationship_type} relationship",
             }
 
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON in properties: {str(e)}")
-            return {"success": False, "error": f"Invalid JSON in properties: {str(e)}"}
         except Exception as e:
             logger.error(f"Error creating node with relationship: {str(e)}")
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def create_nodes_with_relationship(
+    async def create_nodes_with_relationship(  # pyright: ignore
         from_entity_type: str,
-        from_properties: str,
+        from_properties: Dict[str, Any],
         to_entity_type: str,
-        to_properties: str,
+        to_properties: Dict[str, Any],
         relationship_type: str,
-        relationship_properties: Optional[str] = None,
+        relationship_properties: Optional[Dict[str, Any]] = None,
         database: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
@@ -140,11 +130,11 @@ def register_combined_tools(mcp: FastMCP):
 
         Args:
             from_entity_type: Type of the source node to create
-            from_properties: JSON string of properties for the source node
+            from_properties: Dictionary of properties for the source node
             to_entity_type: Type of the target node to create
-            to_properties: JSON string of properties for the target node
+            to_properties: Dictionary of properties for the target node
             relationship_type: Type of relationship to create
-            relationship_properties: Optional JSON string of relationship properties
+            relationship_properties: Optional dictionary of relationship properties
             database: Optional database name
 
         Returns:
@@ -155,19 +145,12 @@ def register_combined_tools(mcp: FastMCP):
                 f"Creating {from_entity_type} and {to_entity_type} nodes with {relationship_type} relationship via MCP"
             )
 
-            # Parse properties
-            parsed_from_properties = json.loads(from_properties)
-            parsed_to_properties = json.loads(to_properties)
-            parsed_rel_properties = None
-            if relationship_properties:
-                parsed_rel_properties = json.loads(relationship_properties)
-
             # Step 1: Validate both node schemas
             from_node_validation = await validate_entity_schema(
-                from_entity_type, from_properties
+                from_entity_type, json.dumps(from_properties)
             )
             to_node_validation = await validate_entity_schema(
-                to_entity_type, to_properties
+                to_entity_type, json.dumps(to_properties)
             )
 
             validation_errors = []
@@ -206,12 +189,10 @@ def register_combined_tools(mcp: FastMCP):
                 }
 
             # Step 3: Create both nodes
-            from_node = await create_node(
-                from_entity_type, parsed_from_properties, database
-            )
+            from_node = await create_node(from_entity_type, from_properties, database)
             from_node_id = from_node["node_id"]
 
-            to_node = await create_node(to_entity_type, parsed_to_properties, database)
+            to_node = await create_node(to_entity_type, to_properties, database)
             to_node_id = to_node["node_id"]
 
             # Step 4: Create the relationship
@@ -220,7 +201,7 @@ def register_combined_tools(mcp: FastMCP):
                     from_node_id,
                     to_node_id,
                     relationship_type,
-                    parsed_rel_properties,
+                    relationship_properties,
                     database,
                 )
 
@@ -259,25 +240,22 @@ def register_combined_tools(mcp: FastMCP):
                     "rollback_performed": True,
                 }
 
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON in properties: {str(e)}")
-            return {"success": False, "error": f"Invalid JSON in properties: {str(e)}"}
         except Exception as e:
             logger.error(f"Error creating nodes with relationship: {str(e)}")
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def create_graph_subgraph(
-        nodes: str,
-        relationships: str,
+    async def create_graph_subgraph(  # pyright: ignore
+        nodes: List[Dict[str, Any]],
+        relationships: List[Dict[str, Any]],
         database: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Create multiple nodes and relationships in a single transaction.
 
         Args:
-            nodes: JSON string array of node definitions with entity_type and properties
-            relationships: JSON string array of relationship definitions
+            nodes: List of node definitions with entity_type and properties
+            relationships: List of relationship definitions
             database: Optional database name
 
         Returns:
@@ -311,21 +289,9 @@ def register_combined_tools(mcp: FastMCP):
         try:
             logger.info("Creating graph subgraph via MCP")
 
-            # Parse input
-            parsed_nodes = json.loads(nodes)
-            parsed_relationships = json.loads(relationships)
-
-            if not isinstance(parsed_nodes, list) or not isinstance(
-                parsed_relationships, list
-            ):
-                return {
-                    "success": False,
-                    "error": "Nodes and relationships must be arrays",
-                }
-
             # Step 1: Validate all nodes
             node_validations = []
-            for i, node_def in enumerate(parsed_nodes):
+            for i, node_def in enumerate(nodes):
                 if "entity_type" not in node_def or "properties" not in node_def:
                     return {
                         "success": False,
@@ -345,7 +311,7 @@ def register_combined_tools(mcp: FastMCP):
                     }
 
             # Step 2: Validate all relationships
-            for i, rel_def in enumerate(parsed_relationships):
+            for i, rel_def in enumerate(relationships):
                 required_fields = ["from_index", "to_index", "type"]
                 for field in required_fields:
                     if field not in rel_def:
@@ -357,14 +323,14 @@ def register_combined_tools(mcp: FastMCP):
                 from_idx = rel_def["from_index"]
                 to_idx = rel_def["to_index"]
 
-                if from_idx >= len(parsed_nodes) or to_idx >= len(parsed_nodes):
+                if from_idx >= len(nodes) or to_idx >= len(nodes):
                     return {
                         "success": False,
                         "error": f"Relationship {i} has invalid node index",
                     }
 
-                from_entity_type = parsed_nodes[from_idx]["entity_type"]
-                to_entity_type = parsed_nodes[to_idx]["entity_type"]
+                from_entity_type = nodes[from_idx]["entity_type"]
+                to_entity_type = nodes[to_idx]["entity_type"]
                 rel_type = rel_def["type"]
 
                 triplet_validation = validate_relationship_triplet(
@@ -380,7 +346,7 @@ def register_combined_tools(mcp: FastMCP):
             created_nodes = []
             node_ids = []
 
-            for i, node_def in enumerate(parsed_nodes):
+            for i, node_def in enumerate(nodes):
                 try:
                     node = await create_node(
                         node_def["entity_type"], node_def["properties"], database
@@ -409,7 +375,7 @@ def register_combined_tools(mcp: FastMCP):
             # Step 4: Create all relationships
             created_relationships = []
 
-            for i, rel_def in enumerate(parsed_relationships):
+            for i, rel_def in enumerate(relationships):
                 try:
                     from_node_id = node_ids[rel_def["from_index"]]
                     to_node_id = node_ids[rel_def["to_index"]]
@@ -452,9 +418,6 @@ def register_combined_tools(mcp: FastMCP):
                 "message": f"Successfully created subgraph with {len(created_nodes)} nodes and {len(created_relationships)} relationships",
             }
 
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON in input: {str(e)}")
-            return {"success": False, "error": f"Invalid JSON in input: {str(e)}"}
         except Exception as e:
             logger.error(f"Error creating subgraph: {str(e)}")
             return {"success": False, "error": str(e)}

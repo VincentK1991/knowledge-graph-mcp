@@ -10,7 +10,7 @@ authors = [
     {name = "Virapat Kieuvongngam", email = "vkieuvongngam@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = {text = "MIT"}
 keywords = ["mcp", "neo4j", "knowledge-graph", "graph-database", "ai", "assistant"]
 classifiers = [
@@ -18,8 +18,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Database",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -29,37 +27,28 @@ classifiers = [
 dependencies = [
     # MCP Framework
     "mcp>=1.0.0",
-
     # Neo4j Driver and Graph Database
     "neo4j>=5.15.0",
-
     # Async Support
     "asyncio-mqtt>=0.16.0",
-
     # Data Validation and Serialization
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
-
     # Configuration Management
     "python-dotenv>=1.0.0",
-
     # JSON Schema Validation
     "jsonschema>=4.20.0",
-
     # Date/Time Handling
     "python-dateutil>=2.8.2",
-
     # Logging and Monitoring
     "structlog>=23.2.0",
-
     # Type Hints and Utilities
     "typing-extensions>=4.8.0",
-
     # HTTP Client (for health checks, etc.)
     "httpx>=0.25.0",
-
     # Retry Logic
     "tenacity>=8.2.0",
+    "openai>=1.109.1",
 ]
 
 [project.optional-dependencies]
@@ -158,7 +147,7 @@ dev-dependencies = [
 # Black code formatter configuration
 [tool.black]
 line-length = 88
-target-version = ['py310', 'py311', 'py312']
+target-version = ['py312']
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -214,7 +203,7 @@ reportConstantRedefinition = true
 reportIncompatibleMethodOverride = true
 reportIncompatibleVariableOverride = true
 reportOverlappingOverloads = true
-pythonVersion = "3.10"
+pythonVersion = "3.12"
 pythonPlatform = "Linux"
 executionEnvironments = [
     { root = "src" }

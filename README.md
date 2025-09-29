@@ -60,6 +60,7 @@ The key insight is that **schemas** (the lists of entities and their associated 
 ## Features
 
 - 🔧 **CRUD Operations**: Full create, read, update, delete for nodes and relationships
+- 🔍 **Semantic Search**: Vector-based semantic search across all entity types
 - 🧠 **Entity Normalization**: Automatic duplicate detection and merging
 - 📊 **Graph Analytics**: Structure analysis and statistics
 - ✅ **Schema Validation**: Automatic validation against predefined schema for both entities and relationship triplets ensuring data integrity
@@ -132,13 +133,18 @@ The server provides several categories of MCP tools for interacting with the kno
 - `create_nodes_with_relationship`: Create two nodes and connect them with a relationship
 - `create_graph_subgraph`: Create multiple nodes and relationships in a single transaction
 
+### Vector Search & Semantic Operations
+- `query_nodes_by_similarity`: Find nodes semantically similar to a query text using vector embeddings
+- `semantic_search`: Perform general semantic search across all entity types with configurable filters
+- `find_related_entities`: Find entities related to a given entity using semantic similarity
+
 ### Analytics & Utilities
 - `find_similar_nodes`: Find nodes with similar properties (e.g., similar names)
 - `find_isolated_nodes`: Identify nodes with no connections or limited connectivity
 - `merge_duplicate_entities`: Merge two duplicate entities into one
 - `analyze_graph_structure`: Get comprehensive statistics about the graph structure
 
-All tools include comprehensive validation against the YAML schema system, ensuring data integrity and consistency.
+All tools include comprehensive validation against the YAML schema system, ensuring data integrity and consistency. **Vector embeddings are automatically generated for all entities** and stored as vector index for semantic search capabilities.
 
 ## Registering with Cursor or CLI tools
 
@@ -188,12 +194,15 @@ environment:
   - NEO4J_PASSWORD=password
 ```
 
+## Recent addition
+
+- **🔍 vector index**: automatic generation of vector embedding of entity nodes. Enabling semantic search capability in addition to already awesome graph traversal techniques.
+
 ## Future Enhancements
 
-Here's what's coming next:
+And here's what's coming next:
 
 ### 🎯 Near-term Goals
-- **🔍 Semantic Search**: Add vector indexing capabilities for intelligent, meaning-based graph queries
 - **🔗 Graph Clustering & Communities**: Automatic discovery of related entity clusters and knowledge communities\
 
 ### 🚀 Future Vision

@@ -14,6 +14,10 @@ from typing import Any, ClassVar, Dict, List, LiteralString, Optional, cast
 from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncManagedTransaction, AsyncSession
 from neo4j.exceptions import ServiceUnavailable, TransientError
 
+from ..utils.property_filter import clean_properties
+from ..utils.text_extractor import extract_text_from_properties
+from ..utils.vector_embedding import VectorEmbedding
+
 logger = logging.getLogger("knowledge-graph-mcp.db_operations")
 
 
@@ -318,7 +322,7 @@ async def create_node(
     entity_type: str, properties: Dict[str, Any], database: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Create a node in the Neo4j knowledge graph.
+    Create a node in the Neo4j knowledge graph with Entity base type and vector embedding.
 
     Args:
         entity_type: The type/label of the entity (e.g., 'Service', 'Class', 'Database')
@@ -326,7 +330,7 @@ async def create_node(
         database: Database name (optional)
 
     Returns:
-        Created node information including assigned ID
+        Created node information including assigned ID and embedding
 
     Example:
         node = await create_node('Service', {
@@ -335,34 +339,53 @@ async def create_node(
             'status': 'active'
         })
     """
+
     # Sanitize entity type for use as label
     label = entity_type.replace(" ", "").replace("-", "_")
 
-    # Build the CREATE query
-    query = f"""
-    CREATE (n:{label} $properties)
-    RETURN elementId(n) as node_id, labels(n) as labels, properties(n) as node_properties
-    """
-
     try:
+        # Extract text from properties for embedding
+        embedding_text = extract_text_from_properties(entity_type, properties)
+        logger.debug(f"Embedding text for {entity_type}: {embedding_text[:100]}...")
+
+        # Generate embedding
+        embedding_util = VectorEmbedding()
+        embedding_vector = await embedding_util.embed(embedding_text)
+        logger.debug(
+            f"Generated embedding vector with {len(embedding_vector)} dimensions"
+        )
+
+        # Add embedding to properties
+        enhanced_properties = {**properties, "embedding_vector": embedding_vector}
+
+        # Build the CREATE query with Entity base type first, then specific label
+        query = f"""
+        CREATE (n:Entity:{label} $properties)
+        RETURN elementId(n) as node_id, labels(n) as labels, properties(n) as node_properties
+        """
+
         result = await Neo4jConnector.execute_write_query(
-            query, {"properties": properties}, database
+            query, {"properties": enhanced_properties}, database
         )
 
         if result:
             node_data = result[0]
-            logger.info(f"Created {entity_type} node with ID {node_data['node_id']}")
+            logger.info(
+                f"Created {entity_type} node with ID {node_data['node_id']} and embedding"
+            )
             return {
                 "node_id": node_data["node_id"],
                 "labels": node_data["labels"],
-                "properties": node_data.get("node_properties", {}),
+                "properties": clean_properties(node_data.get("node_properties", {})),
                 "entity_type": entity_type,
+                "embedding_generated": True,
+                "embedding_dimensions": len(embedding_vector),
             }
         else:
             raise RuntimeError(f"Failed to create {entity_type} node")
 
     except Exception as e:
-        logger.error(f"Error creating {entity_type} node: {e}")
+        logger.error(f"Error creating {entity_type} node with embedding: {e}")
         raise
 
 
@@ -504,7 +527,7 @@ async def query_nodes(
                 {
                     "node_id": record["node_id"],
                     "labels": record["labels"],
-                    "properties": record.get("node_properties", {}),
+                    "properties": clean_properties(record.get("node_properties", {})),
                     "entity_type": entity_type or record["labels"][0]
                     if record["labels"]
                     else None,
@@ -565,7 +588,20 @@ async def execute_cypher(
         logger.info(
             f"Cypher query executed successfully, returned {len(result)} records"
         )
-        return result
+
+        # Filter embedding_vector from any properties in the results
+        filtered_result = []
+        for record in result:
+            filtered_record = {}
+            for key, value in record.items():
+                # Check if this looks like node properties
+                if isinstance(value, dict) and "embedding_vector" in value:
+                    filtered_record[key] = clean_properties(value)
+                else:
+                    filtered_record[key] = value
+            filtered_result.append(filtered_record)
+
+        return filtered_result
 
     except Exception as e:
         logger.error(f"Error executing Cypher query: {e}")

@@ -17,7 +17,7 @@ def register_schema_resources(mcp: FastMCP):
     """Register all schema resources with the MCP server."""
 
     @mcp.resource("knowledge-graph://schema/complete")
-    async def get_complete_schema() -> str:
+    async def get_complete_schema() -> str: # pyright: ignore
         """
         Get the complete knowledge graph schema including all entity types and relationships.
 
@@ -35,7 +35,7 @@ def register_schema_resources(mcp: FastMCP):
             raise
 
     @mcp.resource("knowledge-graph://schema/summary")
-    async def get_schema_summary() -> str:
+    async def get_schema_summary() -> str: # pyright: ignore
         """
         Get a high-level summary of the knowledge graph schema.
 
@@ -53,7 +53,7 @@ def register_schema_resources(mcp: FastMCP):
             raise
 
     @mcp.resource("knowledge-graph://schema/entities")
-    async def get_entity_types() -> str:
+    async def get_entity_types() -> str: # pyright: ignore
         """
         Get all available entity types with their properties and constraints.
 
@@ -71,7 +71,7 @@ def register_schema_resources(mcp: FastMCP):
             raise
 
     @mcp.resource("knowledge-graph://schema/relationships")
-    async def get_relationships() -> str:
+    async def get_relationships() -> str: # pyright: ignore
         """
         Get all possible relationships between entity types.
 
@@ -89,7 +89,7 @@ def register_schema_resources(mcp: FastMCP):
             raise
 
     @mcp.resource("knowledge-graph://schema/entity/{entity_type}")
-    async def get_entity_schema(entity_type: str) -> str:
+    async def get_entity_schema(entity_type: str) -> str: # pyright: ignore
         """
         Get schema information for a specific entity type.
 
@@ -123,7 +123,7 @@ def register_schema_resources(mcp: FastMCP):
             raise
 
     @mcp.resource("knowledge-graph://schema/validation-guide")
-    async def get_validation_guide() -> str:
+    async def get_validation_guide() -> str: # pyright: ignore
         """
         Get validation rules and guidelines for working with the knowledge graph.
 

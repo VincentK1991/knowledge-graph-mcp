@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 
 from mcp.server.fastmcp import FastMCP
 
+from ...utils.property_filter import clean_properties
 from ..db_operations import create_relationship, execute_cypher
 
 logger = logging.getLogger("knowledge-graph-mcp.analytics_tools")
@@ -17,7 +18,7 @@ def register_analytics_tools(mcp: FastMCP):
     """Register all analytics and normalization tools with the MCP server."""
 
     @mcp.tool()
-    async def find_similar_nodes(
+    async def find_similar_nodes(  # pyright: ignore
         entity_type: Optional[str] = None,
         similarity_threshold: float = 0.8,
         comparison_property: str = "name",
@@ -91,12 +92,20 @@ def register_analytics_tools(mcp: FastMCP):
             params = {"threshold": similarity_threshold, "limit": limit}
             similar_nodes = await execute_cypher(similar_query, params, database)
 
-            # Filter by threshold
-            filtered_results = [
-                node
-                for node in similar_nodes
-                if node["similarity_score"] >= similarity_threshold
-            ]
+            # Filter by threshold and clean properties
+            filtered_results = []
+            for node in similar_nodes:
+                if node["similarity_score"] >= similarity_threshold:
+                    cleaned_node = {**node}
+                    if "node1_props" in cleaned_node:
+                        cleaned_node["node1_props"] = clean_properties(
+                            cleaned_node["node1_props"]
+                        )
+                    if "node2_props" in cleaned_node:
+                        cleaned_node["node2_props"] = clean_properties(
+                            cleaned_node["node2_props"]
+                        )
+                    filtered_results.append(cleaned_node)
 
             return {
                 "success": True,
@@ -114,7 +123,7 @@ def register_analytics_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def find_isolated_nodes(
+    async def find_isolated_nodes(  # pyright: ignore
         entity_type: Optional[str] = None,
         max_path_length: int = 3,
         include_completely_isolated: bool = True,
@@ -248,12 +257,22 @@ def register_analytics_tools(mcp: FastMCP):
                 ]
             )
 
+            # Clean embedding vectors from node properties
+            cleaned_isolated_nodes = []
+            for node in isolated_nodes:
+                cleaned_node = {**node}
+                if "node_properties" in cleaned_node:
+                    cleaned_node["node_properties"] = clean_properties(
+                        cleaned_node["node_properties"]
+                    )
+                cleaned_isolated_nodes.append(cleaned_node)
+
             return {
                 "success": True,
                 "entity_type": entity_type,
                 "max_path_length": max_path_length,
                 "include_completely_isolated": include_completely_isolated,
-                "isolated_nodes": isolated_nodes,
+                "isolated_nodes": cleaned_isolated_nodes,
                 "total_isolated": len(isolated_nodes),
                 "completely_isolated_count": completely_isolated_count,
                 "limited_connectivity_count": limited_connectivity_count,
@@ -270,7 +289,7 @@ def register_analytics_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def merge_duplicate_entities(
+    async def merge_duplicate_entities(  # pyright: ignore
         keep_node_id: str,
         merge_node_id: str,
         merge_strategy: str = "merge_properties",
@@ -345,11 +364,11 @@ def register_analytics_tools(mcp: FastMCP):
             rel_query = """
             MATCH (merge)-[r]->(target)
             WHERE elementId(merge) = $merge_id
-            RETURN elementId(target) as target_id, type(r) as rel_type, properties(r) as rel_props, 'outgoing' as direction
+            RETURN elementId(target) as other_node_id, type(r) as rel_type, properties(r) as rel_props, 'outgoing' as direction
             UNION
             MATCH (source)-[r]->(merge)
             WHERE elementId(merge) = $merge_id
-            RETURN elementId(source) as source_id, type(r) as rel_type, properties(r) as rel_props, 'incoming' as direction
+            RETURN elementId(source) as other_node_id, type(r) as rel_type, properties(r) as rel_props, 'incoming' as direction
             """
 
             relationships = await execute_cypher(
@@ -363,14 +382,14 @@ def register_analytics_tools(mcp: FastMCP):
                     if rel["direction"] == "outgoing":
                         await create_relationship(
                             keep_node_id,
-                            rel["target_id"],
+                            rel["other_node_id"],
                             rel["rel_type"],
                             rel["rel_props"],
                             database,
                         )
                     else:  # incoming
                         await create_relationship(
-                            rel["source_id"],
+                            rel["other_node_id"],
                             keep_node_id,
                             rel["rel_type"],
                             rel["rel_props"],
@@ -402,7 +421,7 @@ def register_analytics_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def analyze_graph_structure(database: Optional[str] = None) -> Dict[str, Any]:
+    async def analyze_graph_structure(database: Optional[str] = None) -> Dict[str, Any]:  # pyright: ignore
         """
         Analyze the overall structure and statistics of the knowledge graph.
 

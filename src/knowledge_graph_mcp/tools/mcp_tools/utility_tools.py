@@ -19,7 +19,7 @@ def register_utility_tools(mcp: FastMCP):
     """Register all utility tools with the MCP server."""
 
     @mcp.tool()
-    async def execute_custom_cypher(
+    async def execute_custom_cypher( # pyright: ignore
         query: str, parameters: Optional[str] = None, database: Optional[str] = None
     ) -> Dict[str, Any]:
         """
@@ -61,7 +61,7 @@ def register_utility_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def get_graph_health() -> Dict[str, Any]:
+    async def get_graph_health() -> Dict[str, Any]: # pyright: ignore
         """
         Get health status and statistics for the knowledge graph database.
 
@@ -84,7 +84,7 @@ def register_utility_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def cleanup_graph_data(
+    async def cleanup_graph_data( # pyright: ignore
         entity_types: Optional[str] = None,
         confirm: bool = False,
         database: Optional[str] = None,
@@ -166,7 +166,7 @@ def register_utility_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def validate_entity_schema(
+    async def validate_entity_schema( # pyright: ignore
         entity_type: str, properties: str
     ) -> Dict[str, Any]:
         """
@@ -249,7 +249,7 @@ def register_utility_tools(mcp: FastMCP):
             raise
 
     @mcp.tool()
-    async def validate_relationship(
+    async def validate_relationship( # pyright: ignore
         from_entity_type: str, to_entity_type: str, relationship_type: str
     ) -> Dict[str, Any]:
         """

@@ -19,7 +19,7 @@ def register_relationship_tools(mcp: FastMCP):
     """Register all relationship management tools with the MCP server."""
 
     @mcp.tool()
-    async def create_graph_relationship(
+    async def create_graph_relationship( # pyright: ignore
         from_node_id: str,
         to_node_id: str,
         relationship_type: str,
@@ -80,7 +80,7 @@ def register_relationship_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def query_graph_relationships(
+    async def query_graph_relationships( # pyright: ignore
         from_entity_type: Optional[str] = None,
         to_entity_type: Optional[str] = None,
         relationship_type: Optional[str] = None,
@@ -160,7 +160,7 @@ def register_relationship_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def validate_graph_relationship(
+    async def validate_graph_relationship( # pyright: ignore
         from_node_id: str,
         to_node_id: str,
         relationship_type: str,
@@ -202,7 +202,7 @@ def register_relationship_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def delete_graph_relationship(
+    async def delete_graph_relationship( # pyright: ignore
         relationship_id: str, database: Optional[str] = None
     ) -> Dict[str, Any]:
         """

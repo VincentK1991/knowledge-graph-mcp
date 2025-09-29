@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 
 from mcp.server.fastmcp import FastMCP
 
+from ...utils.property_filter import clean_properties
 from ..db_operations import create_node, execute_cypher, query_nodes
 from ..schema_validation import validate_entity_schema
 
@@ -19,7 +20,7 @@ def register_node_tools(mcp: FastMCP):
     """Register all node management tools with the MCP server."""
 
     @mcp.tool()
-    async def create_graph_node(
+    async def create_graph_node(  # pyright: ignore
         entity_type: str, properties: str, database: Optional[str] = None
     ) -> Dict[str, Any]:
         """
@@ -66,7 +67,7 @@ def register_node_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def query_graph_nodes(
+    async def query_graph_nodes(  # pyright: ignore
         entity_type: Optional[str] = None,
         filters: Optional[str] = None,
         limit: int = 100,
@@ -112,7 +113,7 @@ def register_node_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def update_graph_node(
+    async def update_graph_node(  # pyright: ignore
         node_id: str, properties: str, database: Optional[str] = None
     ) -> Dict[str, Any]:
         """
@@ -161,7 +162,7 @@ def register_node_tools(mcp: FastMCP):
                     "node": {
                         "node_id": updated_node["node_id"],
                         "labels": updated_node["labels"],
-                        "properties": updated_node["node_properties"],
+                        "properties": clean_properties(updated_node["node_properties"]),
                     },
                     "updated_properties": list(parsed_properties.keys()),
                     "message": f"Successfully updated node {node_id}",
@@ -177,7 +178,7 @@ def register_node_tools(mcp: FastMCP):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    async def delete_graph_node(
+    async def delete_graph_node(  # pyright: ignore
         node_id: str, force_delete: bool = False, database: Optional[str] = None
     ) -> Dict[str, Any]:
         """
@@ -229,14 +230,3 @@ def register_node_tools(mcp: FastMCP):
         except Exception as e:
             logger.error(f"Error deleting node: {str(e)}")
             return {"success": False, "error": str(e)}
-
-
-
-
-
-
-
-
-
-
-
